@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -62,26 +63,49 @@ func ReadFromParameterStore(parameterStorePath string, region string) map[string
 	return values
 }
 
-// WriteToParameterStore writes given parameters to a given slash-delimited parameter store path and aws region
-func WriteToParameterStore(parameters map[string]string, parameterStorePath string, region string) {
-	client := getSSMClient(&parameterStorePath, &region)
+func writeSingleParameter(c chan string, client *ssm.SSM, name string, value string) {
 	overwrite := true
 	valueType := "SecureString"
 	keyID := "alias/aws/ssm"
-	// TODO concurrency or something similarly clever
+	input := ssm.PutParameterInput{
+		KeyId:     &keyID,
+		Name:      &name,
+		Overwrite: &overwrite,
+		Type:      &valueType,
+		Value:     &value,
+	}
+	_, err := client.PutParameter(&input)
+	if err != nil {
+		log.Fatal(err)
+	}
+	c <- name
+}
+
+// WriteToParameterStore writes given parameters to a given slash-delimited parameter store path and aws region
+func WriteToParameterStore(parameters map[string]string, parameterStorePath string, region string) {
+	client := getSSMClient(&parameterStorePath, &region)
+	jobs := make(chan string, len(parameters))
+	done := make(chan bool)
 	for key, value := range parameters {
 		name := parameterStorePath + key
-		input := ssm.PutParameterInput{
-			KeyId:     &keyID,
-			Name:      &name,
-			Overwrite: &overwrite,
-			Type:      &valueType,
-			Value:     &value,
+		writeSingleParameter(jobs, client, name, value)
+	}
+	results := make([]string, 0)
+
+	go func() {
+		for key := range jobs {
+			results = append(results, key)
+			if len(results) == len(parameters) {
+				done <- true
+			}
 		}
-		_, err := client.PutParameter(&input)
-		if err != nil {
-			log.Fatal(err)
-		}
+	}()
+
+	select {
+	case <-done:
+		return
+	case <-time.After(5 * time.Second):
+		log.Fatal("timeout")
 	}
 }
 
