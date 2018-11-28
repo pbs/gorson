@@ -20,7 +20,7 @@ docker build -t gorson_builder -f Dockerfile.build.alpine .
 # for each of our target platforms we use the gorson_builder
 #   docker container to compile a binary of our application
 for platform in darwin linux; do \
-    binary_name="confd-${VERSION}-${platform}-amd64"
+    binary_name="gorson-${VERSION}-${platform}-amd64"
     >&2 echo "compiling $binary_name"
 
     # * GOOS is the target operating system
