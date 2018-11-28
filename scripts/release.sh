@@ -7,9 +7,10 @@ IFS=$'\n\t'
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
-GIT_SHA=$(git rev-parse --short HEAD)
-# TODO we probably want this in a go file, to support `gorson version`, etc
-VERSION="0.0.1"
+./scripts/clean.sh
+mkdir -p bin
+
+VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' ./internal/gorson/version/version.go`
 
 >&2 echo "building gorson_builder docker image"
 # build a local docker image called gorson_builder: we'll use this to
@@ -36,7 +37,5 @@ for platform in darwin linux; do \
     -e "GOARCH=amd64" \
     -e "CGO_ENABLED=0" \
     gorson_builder \
-        go build \
-        -ldflags="-s -w -X main.GitSHA=${GIT_SHA}" \
-        -o bin/$binary_name
+        go build -o bin/$binary_name
 done

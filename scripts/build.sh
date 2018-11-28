@@ -8,6 +8,5 @@ IFS=$'\n\t'
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
 >&2 echo "building gorson"
-GIT_SHA=$(git rev-parse --short HEAD)
 mkdir -p bin
-go build -ldflags "-X main.GitSHA=${GIT_SHA}" -o bin/gorson .
+go build -o bin/gorson .
