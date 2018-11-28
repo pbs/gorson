@@ -1,0 +1,10 @@
+FROM golang:1.10.2-alpine
+
+# borrowed with gratitude from confd
+# https://github.com/kelseyhightower/confd/blob/master/Dockerfile.build.alpine?at=09f6676
+
+RUN apk add --no-cache git
+RUN mkdir -p /go/src/github.com/pbs/gorson && \
+  ln -s /go/src/github.com/pbs/gorson /app
+
+WORKDIR /app
