@@ -121,14 +121,18 @@ func WriteToParameterStore(parameters map[string]string, parameterStorePath stri
 
 // ReadJSONFile reads a json file of key-value pairs
 func ReadJSONFile(filepath string) map[string]string {
-	// TODO less cryptic error messages
 	content, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	var output map[string]string
 	if err := json.Unmarshal(content, &output); err != nil {
-		log.Fatal(err)
+		switch err := err.(type) {
+		case *json.SyntaxError:
+			log.Fatal("json decode error reading " + filepath + ": check that it's valid json")
+		default:
+			log.Fatal(err)
+		}
 	}
 	return output
 }
