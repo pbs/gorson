@@ -18,4 +18,5 @@ jobs:
 
       # specify any bash command here prefixed with `run: `
       - run: dep ensure
+      - run: ./scripts/build.sh
       - run: ./scripts/test.sh
