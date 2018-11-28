@@ -27,7 +27,7 @@ $ cat ./example.json
 ## Load parameters as environment variables from a json file
 
 ```
-$(gorson load ./example.json)
+source <(gorson load ./example.json)
 ```
 
 ```
