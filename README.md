@@ -68,6 +68,6 @@ chmod +x /opt/gorson/bin/gorson
 export PATH="$PATH:/opt/gorson/bin"
 ```
 
-# Tests
+# Development
 
-`./scripts/test.sh`
+See [docs/development.md](docs/development.md)
