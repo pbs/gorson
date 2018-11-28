@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"projects.pbs.org/bitbucket/users/cmacdonald/repos/gorson/internal/gorson/bash"
-	"projects.pbs.org/bitbucket/users/cmacdonald/repos/gorson/internal/gorson/io"
+	"github.com/pbs/gorson/internal/gorson/bash"
+	"github.com/pbs/gorson/internal/gorson/io"
 )
 
 func init() {

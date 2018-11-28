@@ -1,7 +1,7 @@
 package main
 
 import (
-	"projects.pbs.org/bitbucket/users/cmacdonald/repos/gorson/cmd"
+	"github.com/pbs/gorson/cmd"
 )
 
 func main() {

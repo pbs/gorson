@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"projects.pbs.org/bitbucket/users/cmacdonald/repos/gorson/internal/gorson/io"
+	"github.com/pbs/gorson/internal/gorson/io"
 )
 
 var filename string

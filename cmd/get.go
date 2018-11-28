@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"projects.pbs.org/bitbucket/users/cmacdonald/repos/gorson/internal/gorson/io"
+	"github.com/pbs/gorson/internal/gorson/io"
 )
 
 func get(path string, region string) {
