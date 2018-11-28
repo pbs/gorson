@@ -8,9 +8,19 @@ type testpair struct {
 }
 
 var testpairs = []testpair{
-	testpair{
+	{
 		input:    map[string]string{"alpha": "the_alpha_value"},
 		expected: "export alpha=the_alpha_value",
+	},
+	{
+		input: map[string]string{
+			"alpha": "the_alpha_value",
+			"beta":  "the_beta_value",
+			"delta": "the_delta_value",
+		},
+		expected: `export alpha=the_alpha_value
+export beta=the_beta_value
+export delta=the_delta_value`,
 	},
 }
 
