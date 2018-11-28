@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/spf13/cobra"
 	"github.com/pbs/gorson/internal/gorson/io"
+	"github.com/spf13/cobra"
 )
 
 func get(path string, region string) {

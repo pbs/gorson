@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/spf13/cobra"
 	"github.com/pbs/gorson/internal/gorson/io"
+	"github.com/spf13/cobra"
 )
 
 var filename string
