@@ -84,14 +84,22 @@ func writeSingleParameter(c chan string, client *ssm.SSM, name string, value str
 // WriteToParameterStore writes given parameters to a given slash-delimited parameter store path and aws region
 func WriteToParameterStore(parameters map[string]string, parameterStorePath string, region string) {
 	client := getSSMClient(&parameterStorePath, &region)
+
+	// the jobs channel will receive messages from successful parameter store writes
 	jobs := make(chan string, len(parameters))
-	done := make(chan bool)
 	for key, value := range parameters {
 		name := parameterStorePath + key
-		writeSingleParameter(jobs, client, name, value)
+		// we pass the jobs channel into the asynchronous write function to receive
+		// success messages
+		go writeSingleParameter(jobs, client, name, value)
 	}
-	results := make([]string, 0)
 
+	// we keep track of the successful parameter store writes with results
+	results := make([]string, 0)
+	// the done channel will receive a message once all writes are complete
+	done := make(chan bool)
+	// this closure collects messages from the jobs channel: once it has enough
+	// (meaning all writes are successful), it sends a message on the done channel
 	go func() {
 		for key := range jobs {
 			results = append(results, key)
@@ -101,6 +109,8 @@ func WriteToParameterStore(parameters map[string]string, parameterStorePath stri
 		}
 	}()
 
+	// we let two channels race: after 5 seconds, the channel from time.After wins,
+	// and we error out
 	select {
 	case <-done:
 		return
