@@ -2,8 +2,10 @@ package io
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
@@ -129,8 +131,12 @@ func ReadJSONFile(filepath string) map[string]string {
 	if err := json.Unmarshal(content, &output); err != nil {
 		switch err := err.(type) {
 		case *json.SyntaxError:
-			log.Fatal("json decode error reading " + filepath + ": check that it's valid json")
+			log.Fatal("error reading " + filepath + ": check that it's valid json")
+		case *json.UnmarshalTypeError:
+			log.Fatal("error reading " + filepath + ": it should contain only string key/value pairs")
+
 		default:
+			fmt.Println(reflect.TypeOf(err))
 			log.Fatal(err)
 		}
 	}
