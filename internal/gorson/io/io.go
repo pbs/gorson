@@ -2,8 +2,10 @@ package io
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
@@ -121,14 +123,22 @@ func WriteToParameterStore(parameters map[string]string, parameterStorePath stri
 
 // ReadJSONFile reads a json file of key-value pairs
 func ReadJSONFile(filepath string) map[string]string {
-	// TODO less cryptic error messages
 	content, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
 	var output map[string]string
 	if err := json.Unmarshal(content, &output); err != nil {
-		log.Fatal(err)
+		switch err := err.(type) {
+		case *json.SyntaxError:
+			log.Fatal("error reading " + filepath + ": check that it's valid json")
+		case *json.UnmarshalTypeError:
+			log.Fatal("error reading " + filepath + ": it should contain only string key/value pairs")
+
+		default:
+			fmt.Println(reflect.TypeOf(err))
+			log.Fatal(err)
+		}
 	}
 	return output
 }

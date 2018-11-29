@@ -21,7 +21,6 @@ func ParamsToShell(parameters map[string]string) string {
 	keys := getKeys(parameters)
 	sort.Strings(keys)
 	for _, key := range keys {
-		// TODO sort
 		// TODO do we need to do extra escaping here?
 		v := parameters[key]
 		lines = append(lines, "export "+key+"="+v)
