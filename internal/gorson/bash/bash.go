@@ -23,7 +23,7 @@ func ParamsToShell(parameters map[string]string) string {
 	for _, key := range keys {
 		// TODO do we need to do extra escaping here?
 		v := parameters[key]
-		lines = append(lines, "export "+key+"="+v)
+		lines = append(lines, "export "+key+"=\""+v+"\"")
 	}
 	return strings.Join(lines, "\n")
 }
