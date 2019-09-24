@@ -10,7 +10,7 @@ type testpair struct {
 var testpairs = []testpair{
 	{
 		input:    map[string]string{"alpha": "the_alpha_value"},
-		expected: "export alpha=the_alpha_value",
+		expected: "export alpha=\"the_alpha_value\"",
 	},
 	{
 		input: map[string]string{
