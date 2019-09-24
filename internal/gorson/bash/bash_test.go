@@ -18,9 +18,9 @@ var testpairs = []testpair{
 			"beta":  "the_beta_value",
 			"delta": "the_delta_value",
 		},
-		expected: `export alpha=the_alpha_value
-export beta=the_beta_value
-export delta=the_delta_value`,
+		expected: `export alpha="the_alpha_value"
+export beta="the_beta_value"
+export delta="the_delta_value"`,
 	},
 }
 
