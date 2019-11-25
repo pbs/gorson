@@ -1,18 +1,3 @@
-# How to set up a development environment
-
-* Clone this repository into a Go [workspace](https://golang.org/doc/code.html#Organization):
-
-```
-git clone git@github.com:pbs/gorson.git $GOPATH/src/github.com/pbs/gorson
-```
-
-* Using [`dep`](https://golang.github.io/dep/), ensure local dependencies are installed
-
-```
-cd $GOPATH/src/github.com/pbs/gorson
-dep ensure
-```
-
 # How to run tests
 
 * Run the test script:
