@@ -9,18 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
 func getSSMClient(parameterStorePath *string, region *string) *ssm.SSM {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(*region),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
 	client := ssm.New(sess)
 	return client
 }
