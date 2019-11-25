@@ -75,8 +75,8 @@ These environment variables will affect the AWS session behavior:
 https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
 
 
-`AWS_PROFILE`: use a named profile from your `~/.aws/config` file (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
-`AWS_REGION`: use a specific AWS region (see https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html)
+* `AWS_PROFILE`: use a named profile from your `~/.aws/config` file (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
+* `AWS_REGION`: use a specific AWS region (see https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html)
 
 ```
 AWS_PROFILE=example-profile AWS_REGION=us-east-1 gorson get /a/parameter/store/path/
