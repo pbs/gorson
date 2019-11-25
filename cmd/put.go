@@ -9,8 +9,8 @@ import (
 
 var filename string
 
-func put(path string, region string, parameters map[string]string) {
-	io.WriteToParameterStore(parameters, path, region)
+func put(path string, parameters map[string]string) {
+	io.WriteToParameterStore(parameters, path)
 	for key := range parameters {
 		fmt.Println("wrote " + path + key)
 	}
@@ -23,7 +23,7 @@ func init() {
 		Run: func(cmd *cobra.Command, args []string) {
 			path := args[0]
 			parameters := io.ReadJSONFile(filename)
-			put(path, region, parameters)
+			put(path, parameters)
 		},
 		Args: cobra.ExactArgs(1),
 	}

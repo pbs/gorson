@@ -9,25 +9,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 )
 
-func getSSMClient(parameterStorePath *string, region *string) *ssm.SSM {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(*region),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+func getSSMClient(parameterStorePath *string) *ssm.SSM {
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
 	client := ssm.New(sess)
 	return client
 }
 
-// ReadFromParameterStore gets all parameters from a given slash-delimited parameter store path and aws region
-func ReadFromParameterStore(parameterStorePath string, region string) map[string]string {
-	client := getSSMClient(&parameterStorePath, &region)
+// ReadFromParameterStore gets all parameters from a given slash-delimited parameter store path
+func ReadFromParameterStore(parameterStorePath string) map[string]string {
+	client := getSSMClient(&parameterStorePath)
 
 	var nextToken *string
 	values := make(map[string]string)
@@ -83,9 +80,9 @@ func writeSingleParameter(c chan string, client *ssm.SSM, name string, value str
 	c <- name
 }
 
-// WriteToParameterStore writes given parameters to a given slash-delimited parameter store path and aws region
-func WriteToParameterStore(parameters map[string]string, parameterStorePath string, region string) {
-	client := getSSMClient(&parameterStorePath, &region)
+// WriteToParameterStore writes given parameters to a given slash-delimited parameter store path
+func WriteToParameterStore(parameters map[string]string, parameterStorePath string) {
+	client := getSSMClient(&parameterStorePath)
 
 	// the jobs channel will receive messages from successful parameter store writes
 	jobs := make(chan string, len(parameters))

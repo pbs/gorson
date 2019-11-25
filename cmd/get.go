@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func get(path string, region string) {
-	pms := io.ReadFromParameterStore(path, region)
+func get(path string) {
+	pms := io.ReadFromParameterStore(path)
 	serialized, err := json.MarshalIndent(pms, "", "    ")
 	if err != nil {
 		log.Fatal(err)
@@ -25,7 +25,7 @@ func init() {
 		Short: "Get parameters from a parameter store path",
 		Run: func(cmd *cobra.Command, args []string) {
 			path := args[0]
-			get(path, region)
+			get(path)
 		},
 		Args: cobra.ExactArgs(1),
 	}
