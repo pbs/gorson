@@ -4,10 +4,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
-
-var region string
 
 var rootCmd = &cobra.Command{
 	Use:   "gorson",
@@ -18,9 +15,6 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&region, "region", "r", "us-east-1", "AWS region")
-	viper.BindPFlag("region", rootCmd.PersistentFlags().Lookup("region"))
-	viper.SetDefault("region", "us-east-1")
 }
 
 // Execute runs the root command
