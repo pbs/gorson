@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/json"
