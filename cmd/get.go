@@ -1,22 +1,17 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/pbs/gorson/internal/gorson/io"
+	"github.com/pbs/gorson/internal/gorson/json"
 	"github.com/spf13/cobra"
 )
 
 func get(path string) {
 	pms := io.ReadFromParameterStore(path)
-	serialized, err := json.MarshalIndent(pms, "", "    ")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(string(serialized))
+	marshalled := json.Marshal(pms)
+	fmt.Println(marshalled)
 }
 
 func init() {
