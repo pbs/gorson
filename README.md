@@ -24,6 +24,20 @@ $ cat ./example.json
 }
 ```
 
+There's also a `--yaml` flag to export the parameters in YAML format.
+
+```
+$ gorson get --yaml /a/parameter/store/path/ > ./example.yml
+```
+
+```
+$ cat ./example.yml
+
+alpha: "the_alpha_value",
+beta: "the_beta_value",
+delta: "the_delta_value"
+```
+
 ## Load parameters as environment variables from a json file
 
 ```
