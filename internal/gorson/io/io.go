@@ -82,7 +82,6 @@ func writeSingleParameter(c chan string, client *ssm.SSM, name string, value str
 
 // WriteToParameterStore writes given parameters to a given slash-delimited parameter store path
 func WriteToParameterStore(parameters map[string]string, parameterStorePath string) {
-
 	client := getSSMClient(&parameterStorePath)
 
 	// the jobs channel will receive messages from successful parameter store writes
