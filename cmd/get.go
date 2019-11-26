@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/json"
@@ -11,19 +12,31 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func get(path string, y bool) {
-  p := util.NewParameterStorePath(path)
+var format string
+
+func get(path string) {
+	p := util.NewParameterStorePath(path)
 	pms := io.ReadFromParameterStore(*p)
-	if y {
+	if format == "yaml" || format == "yml" {
 		serialized, err := yaml.Marshal(pms)
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(string(serialized))
 
-	} else {
+	} else if format == "env" {
+		serialized, err := yaml.Marshal(pms)
+		if err != nil {
+			log.Fatal(err)
+		}
+		var re = regexp.MustCompile(`(\w*):\s`)
+		fmt.Println(re.ReplaceAllString(string(serialized), "${1}="))
+
+	} else if format == "json" {
 		marshalled := json.Marshal(pms)
 		fmt.Println(marshalled)
+	} else {
+		log.Fatal("No proper format requested. (yaml, env, json allowed)")
 	}
 }
 
@@ -33,11 +46,10 @@ func init() {
 		Short: "Get parameters from a parameter store path",
 		Run: func(cmd *cobra.Command, args []string) {
 			path := args[0]
-			y, _ := cmd.Flags().GetBool("yaml")
-			get(path, y)
+			get(path)
 		},
 		Args: cobra.ExactArgs(1),
 	}
-	cmd.Flags().Bool("yaml", false, "get command outputs as yaml")
+	cmd.Flags().StringVarP(&format, "format", "f", "json", "the format of gorson get output.")
 	rootCmd.AddCommand(cmd)
 }
