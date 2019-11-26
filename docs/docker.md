@@ -36,5 +36,5 @@ $ docker run -it -v `pwd`:/app gorson ./scripts/docker-release.sh
 or
 
 ```bash
-$ docker-compose run --rm builder ./scripts/docker-releases.sh
+$ docker-compose run --rm builder ./scripts/docker-release.sh
 ```
