@@ -9,14 +9,32 @@ this package up and running through Docker.
 $ docker build -t gorson .
 ```
 
+or
+
+```bash
+$ docker-compose build
+```
+
 ## Run tests on Docker image
 
 ```bash
 $ docker run -it -v `pwd`:/app gorson ./scripts/test.sh
 ```
 
+or
+
+```bash
+$ docker-compose run --rm builder ./scripts/test.sh
+```
+
 ## Create releases
 
 ```bash
 $ docker run -it -v `pwd`:/app gorson ./scripts/docker-release.sh
+```
+
+or
+
+```bash
+$ docker-compose run --rm builder ./scripts/docker-releases.sh
 ```
