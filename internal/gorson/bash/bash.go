@@ -1,6 +1,7 @@
 package bash
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -21,9 +22,9 @@ func ParamsToShell(parameters map[string]string) string {
 	keys := getKeys(parameters)
 	sort.Strings(keys)
 	for _, key := range keys {
-		// TODO do we need to do extra escaping here?
 		v := parameters[key]
-		lines = append(lines, "export "+key+"=\""+v+"\"")
+		line := fmt.Sprintf("export %s='%s'", key, v)
+		lines = append(lines, line)
 	}
 	return strings.Join(lines, "\n")
 }
