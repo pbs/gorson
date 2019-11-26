@@ -5,11 +5,13 @@ import (
 
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/json"
+	"github.com/pbs/gorson/internal/gorson/util"
 	"github.com/spf13/cobra"
 )
 
 func get(path string) {
-	pms := io.ReadFromParameterStore(path)
+	p := util.NewParameterStorePath(path)
+	pms := io.ReadFromParameterStore(*p)
 	marshalled := json.Marshal(pms)
 	fmt.Println(marshalled)
 }
