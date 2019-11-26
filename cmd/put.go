@@ -4,13 +4,15 @@ import (
 	"fmt"
 
 	"github.com/pbs/gorson/internal/gorson/io"
+	"github.com/pbs/gorson/internal/gorson/util"
 	"github.com/spf13/cobra"
 )
 
 var filename string
 
 func put(path string, parameters map[string]string) {
-	io.WriteToParameterStore(parameters, path)
+	p := util.NewParameterStorePath(path)
+	io.WriteToParameterStore(parameters, *p)
 	for key := range parameters {
 		fmt.Println("wrote " + path + key)
 	}

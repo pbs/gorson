@@ -6,12 +6,14 @@ import (
 
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/json"
+	"github.com/pbs/gorson/internal/gorson/util"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
 func get(path string, y bool) {
-	pms := io.ReadFromParameterStore(path)
+  p := util.NewParameterStorePath(path)
+	pms := io.ReadFromParameterStore(*p)
 	if y {
 		serialized, err := yaml.Marshal(pms)
 		if err != nil {
