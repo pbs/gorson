@@ -33,8 +33,8 @@ $ gorson get --format yaml /a/parameter/store/path/ > ./example.yml
 ```
 $ cat ./example.yml
 
-alpha: "the_alpha_value",
-beta: "the_beta_value",
+alpha: "the_alpha_value"
+beta: "the_beta_value"
 delta: "the_delta_value"
 ```
 
@@ -45,8 +45,8 @@ $ gorson get --format env /a/parameter/store/path/ > ./.env
 ```
 $ cat ./.env
 
-alpha="the_alpha_value",
-beta="the_beta_value",
+alpha="the_alpha_value"
+beta="the_beta_value"
 delta="the_delta_value"
 ```
 
