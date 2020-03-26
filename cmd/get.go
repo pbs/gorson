@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"regexp"
 
+	"github.com/pbs/gorson/internal/gorson/env"
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/json"
 	"github.com/pbs/gorson/internal/gorson/util"
@@ -25,13 +25,7 @@ func get(path string) {
 		fmt.Println(string(serialized))
 
 	} else if format == "env" {
-		serialized, err := yaml.Marshal(pms)
-		if err != nil {
-			log.Fatal(err)
-		}
-		var re = regexp.MustCompile(`(\w*):\s"?([^\n"]*)"?`)
-		fmt.Println(re.ReplaceAllString(string(serialized), "${1}='${2}'"))
-
+		fmt.Println(env.Format(pms))
 	} else if format == "json" {
 		marshalled := json.Marshal(pms)
 		fmt.Println(marshalled)
