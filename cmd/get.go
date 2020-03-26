@@ -29,8 +29,8 @@ func get(path string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		var re = regexp.MustCompile(`(\w*):\s`)
-		fmt.Println(re.ReplaceAllString(string(serialized), "${1}="))
+		var re = regexp.MustCompile(`(\w*):\s"?([^\n"]*)"?`)
+		fmt.Println(re.ReplaceAllString(string(serialized), "${1}='${2}'"))
 
 	} else if format == "json" {
 		marshalled := json.Marshal(pms)
