@@ -7,8 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Format env-formats parameters
-func Format(parameters map[string]string) string {
+// Marshal env-formats parameters
+func Marshal(parameters map[string]string) string {
 	serialized, err := yaml.Marshal(parameters)
 	if err != nil {
 		log.Fatal(err)

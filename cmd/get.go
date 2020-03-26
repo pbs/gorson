@@ -25,7 +25,8 @@ func get(path string) {
 		fmt.Println(string(serialized))
 
 	} else if format == "env" {
-		fmt.Println(env.Format(pms))
+		marshalled := env.Marshal(pms)
+		fmt.Println(marshalled)
 	} else if format == "json" {
 		marshalled := json.Marshal(pms)
 		fmt.Println(marshalled)

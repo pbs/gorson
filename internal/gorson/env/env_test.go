@@ -22,7 +22,7 @@ var testpairs = []testpair{
 
 func TestParamsToJson(t *testing.T) {
 	for _, pair := range testpairs {
-		output := Format(pair.input)
+		output := Marshal(pair.input)
 		if output != pair.expected {
 			t.Error(
 				"For", pair.input,
