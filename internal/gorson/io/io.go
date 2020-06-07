@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
+	"math/rand"
 	"reflect"
 	"strings"
 	"time"
 
 	"github.com/pbs/gorson/internal/gorson/util"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
 )
@@ -65,7 +68,7 @@ func ReadFromParameterStore(path util.ParameterStorePath) map[string]string {
 	return values
 }
 
-func writeSingleParameter(c chan string, client *ssm.SSM, name string, value string) {
+func writeSingleParameter(c chan string, client *ssm.SSM, name string, value string, retryCount int) {
 	overwrite := true
 	valueType := "SecureString"
 	keyID := "alias/aws/ssm"
@@ -78,9 +81,26 @@ func writeSingleParameter(c chan string, client *ssm.SSM, name string, value str
 	}
 	_, err := client.PutParameter(&input)
 	if err != nil {
-		log.Fatal(err)
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "ThrottlingException" {
+				if retryCount < 100 {
+					// Introduce exponential backoff with jitter
+					r := math.Pow(2, float64(retryCount)) * (1 + rand.Float64())
+					time.Sleep(time.Duration(r) * time.Millisecond)
+					writeSingleParameter(c, client, name, value, retryCount+1)
+				} else {
+					fmt.Println("throttle retry limit reached for " + name)
+				}
+			} else {
+				log.Fatal(err)
+			}
+		} else {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Println("wrote " + name)
+		c <- name
 	}
-	c <- name
 }
 
 // WriteToParameterStore writes given parameters to a given parameter store path
@@ -92,8 +112,8 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 	for key, value := range parameters {
 		name := path.String() + key
 		// we pass the jobs channel into the asynchronous write function to receive
-		// success messages
-		go writeSingleParameter(jobs, client, name, value)
+		// success messages. When throttled, parameter writes wait, then retry.
+		go writeSingleParameter(jobs, client, name, value, 0)
 	}
 
 	// we keep track of the successful parameter store writes with results
@@ -111,12 +131,12 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 		}
 	}()
 
-	// we let two channels race: after 5 seconds, the channel from time.After wins,
+	// we let two channels race: after 1 minute, the channel from time.After wins,
 	// and we error out
 	select {
 	case <-done:
 		return
-	case <-time.After(5 * time.Second):
+	case <-time.After(1 * time.Minute):
 		log.Fatal("timeout")
 	}
 }
