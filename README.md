@@ -1,4 +1,4 @@
-[![Stability](https://img.shields.io/badge/Stability-Under%20Active%20Development-Red.svg)](https://github.com/pbs/gorson)
+[![Stability](https://img.shields.io/badge/Stability-Under%20Active%20Development-Red.svg)](https://github.com/pbs/gorson) [![Main Workflow](https://github.com/pbs/gorson/workflows/Main%20Workflow/badge.svg)](https://github.com/pbs/gorson/actions?query=workflow%3A%22Main+Workflow%22)
 
 # Warning: experimental
 
