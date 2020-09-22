@@ -133,16 +133,16 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 		go writeSingleParameter(jobs, client, name, value, 0)
 	}
 
-	// we keep track of the successful parameter store writes with results
+	// we keep track of the parameter store writes with results
 	results := make([]WriteResult, 0)
 	// the done channel will receive a message once all writes are complete
 	done := make(chan bool)
 	// this closure collects messages from the jobs channel: once it has enough
-	// (meaning all writes are successful), it sends a message on the done channel
+	// (meaning all writes are successful or one has failed), it sends a message on the done channel
 	go func() {
 		for key := range jobs {
 			results = append(results, key)
-			if len(results) == len(parameters) {
+			if len(results) == len(parameters) || key.Error != nil {
 				done <- true
 			}
 		}
