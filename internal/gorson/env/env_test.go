@@ -20,7 +20,7 @@ var testpairs = []testpair{
 	},
 }
 
-func TestMarhal(t *testing.T) {
+func TestMarshal(t *testing.T) {
 	for _, pair := range testpairs {
 		output := Marshal(pair.input)
 		if output != pair.expected {
