@@ -10,7 +10,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 ./scripts/clean.sh
 mkdir -p bin
 
-VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' ./internal/gorson/version/version.go`
+VERSION=`egrep -o '[0-9]' ./internal/gorson/version/version.go`
 
 >&2 echo "building gorson_builder docker image"
 # build a local docker image called gorson_builder: we'll use this to
