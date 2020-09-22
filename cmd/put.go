@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/util"
 	"github.com/spf13/cobra"
@@ -10,7 +12,10 @@ var filename string
 
 func put(path string, parameters map[string]string) {
 	p := util.NewParameterStorePath(path)
-	io.WriteToParameterStore(parameters, *p)
+	err := io.WriteToParameterStore(parameters, *p)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func init() {

@@ -2,6 +2,7 @@ package io
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ssm"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 )
 
 func getSSMClient() *ssm.SSM {
@@ -68,7 +70,13 @@ func ReadFromParameterStore(path util.ParameterStorePath) map[string]string {
 	return values
 }
 
-func writeSingleParameter(c chan string, client *ssm.SSM, name string, value string, retryCount int) {
+// WriteResult is the result writing a single parameter - successful is Error is nil
+type WriteResult struct {
+	Name  string
+	Error error
+}
+
+func writeSingleParameter(c chan WriteResult, client ssmiface.SSMAPI, name string, value string, retryCount int) {
 	overwrite := true
 	valueType := "SecureString"
 	keyID := "alias/aws/ssm"
@@ -82,33 +90,42 @@ func writeSingleParameter(c chan string, client *ssm.SSM, name string, value str
 	_, err := client.PutParameter(&input)
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() == "ThrottlingException" {
-				if retryCount < 100 {
-					// Introduce exponential backoff with jitter
-					r := math.Pow(2, float64(retryCount)) * (1 + rand.Float64())
-					time.Sleep(time.Duration(r) * time.Millisecond)
-					writeSingleParameter(c, client, name, value, retryCount+1)
-				} else {
-					fmt.Println("throttle retry limit reached for " + name)
+			if awsErr.Code() != "ThrottlingException" {
+				fmt.Println("got some crazy error")
+				c <- WriteResult{
+					Name:  name,
+					Error: awsErr,
 				}
-			} else {
-				log.Fatal(err)
+				return
 			}
-		} else {
-			log.Fatal(err)
+			if retryCount < 100 {
+				// Introduce exponential backoff with jitter
+				r := math.Pow(2, float64(retryCount)) * (1 + rand.Float64())
+				time.Sleep(time.Duration(r) * time.Millisecond)
+				writeSingleParameter(c, client, name, value, retryCount+1)
+			} else {
+				c <- WriteResult{
+					Name:  name,
+					Error: errors.New("throttle retry limit reached for " + name),
+				}
+				return
+			}
 		}
 	} else {
-		fmt.Println("wrote " + name)
-		c <- name
+		c <- WriteResult{
+			Name:  name,
+			Error: err,
+		}
+		return
 	}
 }
 
 // WriteToParameterStore writes given parameters to a given parameter store path
-func WriteToParameterStore(parameters map[string]string, path util.ParameterStorePath) {
+func WriteToParameterStore(parameters map[string]string, path util.ParameterStorePath) error {
 	client := getSSMClient()
 
 	// the jobs channel will receive messages from successful parameter store writes
-	jobs := make(chan string, len(parameters))
+	jobs := make(chan WriteResult, len(parameters))
 	for key, value := range parameters {
 		name := path.String() + key
 		// we pass the jobs channel into the asynchronous write function to receive
@@ -117,7 +134,7 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 	}
 
 	// we keep track of the successful parameter store writes with results
-	results := make([]string, 0)
+	results := make([]WriteResult, 0)
 	// the done channel will receive a message once all writes are complete
 	done := make(chan bool)
 	// this closure collects messages from the jobs channel: once it has enough
@@ -135,9 +152,15 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 	// and we error out
 	select {
 	case <-done:
-		return
+		// if any results came back with errors, return the first error
+		for _, result := range results {
+			if result.Error != nil {
+				return result.Error
+			}
+		}
+		return nil
 	case <-time.After(1 * time.Minute):
-		log.Fatal("timeout")
+		return errors.New("timeout")
 	}
 }
 
