@@ -1,6 +1,9 @@
 name: Build
 
-on: [push]
+on:
+  push:
+    tags:
+    - '*'
 
 jobs:
   build:
@@ -8,5 +11,35 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-      - name: build
+      - name: Build Binaries
         run: ./scripts/release.sh
+        # as of 2020-09-22, it's tricky to use the official GH release actions if you don't know the asset
+        # names ahead of time, but we can do it ourselves...with javascript
+        # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
+      - name: Create Release
+        uses: actions/github-script@v2
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            console.log('environment', process.versions);
+            const fs = require('fs').promises;
+            const { repo: { owner, repo }, sha } = context;
+            console.log({ owner, repo, sha });
+            const release = await github.repos.createRelease({
+              owner, repo,
+              tag_name: process.env.GITHUB_REF,
+              draft: true,
+              target_commitish: sha
+            });
+            console.log('created release', { release });
+            for (let file of await fs.readdir('./bin/')) {
+              // do whatever filtering you want here, I'm just uploading all the files
+              console.log('uploading', file);
+              await github.repos.uploadReleaseAsset({
+                owner, repo,
+                release_id: release.data.id,
+                name: file,
+                data: await fs.readFile(`./${file}`)
+              });
+            }
+
