@@ -1,9 +1,9 @@
-name: Build
+name: Release
 
 on:
   push:
     tags:
-    - 'release*'
+    - '*'
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v1
       - name: Build Binaries
-        run: ./scripts/release.sh
+        run: ./scripts/build-release.sh
         # as of 2020-09-22, it's tricky to use the official GH release actions if you don't know the asset
         # names ahead of time, but we can do it ourselves...with javascript
         # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
@@ -34,7 +34,6 @@ jobs:
             });
             console.log('created release', { release });
             for (let file of await fs.readdir('./bin/')) {
-              // do whatever filtering you want here, I'm just uploading all the files
               console.log('uploading', file);
               await github.repos.uploadReleaseAsset({
                 owner, repo,
