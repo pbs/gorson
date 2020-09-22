@@ -91,7 +91,6 @@ func writeSingleParameter(c chan WriteResult, client ssmiface.SSMAPI, name strin
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() != "ThrottlingException" {
-				fmt.Println("got some crazy error")
 				c <- WriteResult{
 					Name:  name,
 					Error: awsErr,
@@ -140,9 +139,9 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 	// this closure collects messages from the jobs channel: once it has enough
 	// (meaning all writes are successful or one has failed), it sends a message on the done channel
 	go func() {
-		for key := range jobs {
-			results = append(results, key)
-			if len(results) == len(parameters) || key.Error != nil {
+		for result := range jobs {
+			results = append(results, result)
+			if len(results) == len(parameters) || result.Error != nil {
 				done <- true
 			}
 		}
