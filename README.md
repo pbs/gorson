@@ -83,7 +83,7 @@ $ wget https://github.com/pbs/gorson/releases/download/8/gorson-8-darwin-amd64
 
 Download the binary
 ```
-$ w https://github.com/pbs/gorson/releases/download/8/gorson-8-darwin-amd64
+$ wget https://github.com/pbs/gorson/releases/download/8/gorson-8-darwin-amd64
 ```
 
 Move the binary to an installation path, make it executable, and add to path
