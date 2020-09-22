@@ -31,7 +31,7 @@ for platform in darwin linux; do \
     # * CGO_ENABLED controls whether the go compiler allows us to
     #     import C packages (we don't do this, so we set it to 0 to turn CGO off)
     #     see https://golang.org/cmd/cgo/
-    docker run -it --rm \
+    docker run --rm \
     -v ${PWD}:/app \
     -e "GOOS=$platform" \
     -e "GOARCH=amd64" \
