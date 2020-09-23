@@ -30,8 +30,11 @@ func getSSMClient() *ssm.SSM {
 }
 
 // ReadFromParameterStore gets all parameters from a given parameter store path
-func ReadFromParameterStore(path util.ParameterStorePath) map[string]string {
-	client := getSSMClient()
+func ReadFromParameterStore(path util.ParameterStorePath, client ssmiface.SSMAPI) map[string]string {
+	if client == nil {
+		client = getSSMClient()
+	}
+
 	p := path.String()
 
 	var nextToken *string
@@ -120,8 +123,10 @@ func writeSingleParameter(c chan WriteResult, client ssmiface.SSMAPI, name strin
 }
 
 // WriteToParameterStore writes given parameters to a given parameter store path
-func WriteToParameterStore(parameters map[string]string, path util.ParameterStorePath) error {
-	client := getSSMClient()
+func WriteToParameterStore(parameters map[string]string, path util.ParameterStorePath, timeout time.Duration, client ssmiface.SSMAPI) error {
+	if client == nil {
+		client = getSSMClient()
+	}
 
 	// the jobs channel will receive messages from successful parameter store writes
 	jobs := make(chan WriteResult, len(parameters))
@@ -158,7 +163,7 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 			}
 		}
 		return nil
-	case <-time.After(1 * time.Minute):
+	case <-time.After(timeout):
 		return errors.New("timeout")
 	}
 }
