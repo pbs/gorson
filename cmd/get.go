@@ -16,7 +16,7 @@ var format string
 
 func get(path string) {
 	p := util.NewParameterStorePath(path)
-	pms := io.ReadFromParameterStore(*p)
+	pms := io.ReadFromParameterStore(*p, nil)
 	if format == "yaml" || format == "yml" {
 		serialized, err := yaml.Marshal(pms)
 		if err != nil {
