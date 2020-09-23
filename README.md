@@ -76,20 +76,20 @@ Currently gorson ships binaries for OS X and Linux 64bit systems. You can downlo
 ## OS X
 
 ```
-$ wget https://github.com/pbs/gorson/releases/download/5/gorson-5-darwin-amd64
+$ wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
 ```
 
 ## Linux
 
 Download the binary
 ```
-$ wget https://github.com/pbs/gorson/releases/download/5/gorson-5-darwin-amd64
+$ wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
 ```
 
 Move the binary to an installation path, make it executable, and add to path
 ```
 mkdir -p /opt/gorson/bin
-mv gorson-5-linux-amd64 /opt/gorson/bin/gorson
+mv gorson-6-linux-amd64 /opt/gorson/bin/gorson
 chmod +x /opt/gorson/bin/gorson
 export PATH="$PATH:/opt/gorson/bin"
 ```
