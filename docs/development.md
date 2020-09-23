@@ -8,10 +8,21 @@
 
 # How to release
 
-* Make sure the version number in [`internal/gorson/version/version.go`](/internal/gorson/version/version.go) matches the version you're releasing.
-* Run the release script to cross-compile binaries for distribution:
+From the `master` branch, run the release script:
+
 ```
 ./scripts/release.sh
 ```
-* create a new release in github: https://github.com/pbs/gorson/releases/new
-* add the binaries created locally in your `./bin` directory
+
+Then, create a pull request with your version bump and get it merged to `master`.
+
+The release script will:
+
+This will:
+
+* update the version number everywhere relevant in the codebase
+* check out a git branch
+* commit the version change
+* tag the commit with the new version number
+* push the branch
+* create a Github release
