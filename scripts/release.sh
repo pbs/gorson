@@ -4,8 +4,8 @@ IFS=$'\n\t'
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
-CURRENT=$(egrep -o '[0-9]' ./internal/gorson/version/version.go)
-NEW=`expr $CURRENT + 1`
+CURRENT=$(grep -E -o '[0-9]' ./internal/gorson/version/version.go)
+NEW=$(( CURRENT + 1))
 
 sed "-i" "" "-e" "s/-$CURRENT-/-$NEW-/g" README.md
 sed "-i" "" "-e" "s/\/$CURRENT\//\/$NEW\//g" README.md
