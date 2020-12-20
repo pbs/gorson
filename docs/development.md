@@ -2,19 +2,19 @@
 
 * Run the test script:
 
-```
+```bash
 ./scripts/test.sh
 ```
 
-# How to release
+## How to release
 
-From the `master` branch, run the release script:
+From the `main` branch, run the release script:
 
-```
+```bash
 ./scripts/release.sh
 ```
 
-Then, create a pull request with your version bump and get it merged to `master`.
+Then, create a pull request with your version bump and get it merged to `main`.
 
 The release script will:
 

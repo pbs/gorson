@@ -6,35 +6,35 @@ this package up and running through Docker.
 ## Build Docker image
 
 ```bash
-$ docker build -t gorson .
+docker build -t gorson .
 ```
 
 or
 
 ```bash
-$ docker-compose build
+docker-compose build
 ```
 
 ## Run tests on Docker image
 
 ```bash
-$ docker run -it -v `pwd`:/app gorson ./scripts/test.sh
+docker run -it -v "$PWD":/app gorson ./scripts/test.sh
 ```
 
 or
 
 ```bash
-$ docker-compose run --rm builder ./scripts/test.sh
+docker-compose run --rm builder ./scripts/test.sh
 ```
 
 ## Create releases
 
 ```bash
-$ docker run -it -v `pwd`:/app gorson ./scripts/docker-release.sh
+docker run -it -v "$PWD":/app gorson ./scripts/docker-release.sh
 ```
 
 or
 
 ```bash
-$ docker-compose run --rm builder ./scripts/docker-release.sh
+docker-compose run --rm builder ./scripts/docker-release.sh
 ```
