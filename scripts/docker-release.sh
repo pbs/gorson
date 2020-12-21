@@ -10,7 +10,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 ./scripts/clean.sh
 mkdir -p bin
 
-VERSION=`egrep -o '[0-9]+\.[0-9a-z.\-]+' ./internal/gorson/version/version.go`
+VERSION=$(grep -E -o '[0-9]+\.[0-9a-z.\-]+' ./internal/gorson/version/version.go)
 
 # We want to make sure the final builds are formatted and linted properly.
 ./scripts/format.sh
@@ -30,5 +30,5 @@ for platform in darwin linux; do \
     # * CGO_ENABLED controls whether the go compiler allows us to
     #     import C packages (we don't do this, so we set it to 0 to turn CGO off)
     #     see https://golang.org/cmd/cgo/
-    GOOS=$platform GOARCH=amd64 CGO_ENABLED=0 go build -o bin/$binary_name
+    GOOS=$platform GOARCH=amd64 CGO_ENABLED=0 go build -o "bin/$binary_name"
 done

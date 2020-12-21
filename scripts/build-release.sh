@@ -10,7 +10,7 @@ cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 ./scripts/clean.sh
 mkdir -p bin
 
-VERSION=`egrep -o '[0-9]' ./internal/gorson/version/version.go`
+VERSION=$(grep -E -o '[0-9]' ./internal/gorson/version/version.go)
 
 >&2 echo "building gorson_builder docker image"
 # build a local docker image called gorson_builder: we'll use this to
@@ -32,10 +32,10 @@ for platform in darwin linux; do \
     #     import C packages (we don't do this, so we set it to 0 to turn CGO off)
     #     see https://golang.org/cmd/cgo/
     docker run --rm \
-    -v ${PWD}:/app \
+    -v "${PWD}":/app \
     -e "GOOS=$platform" \
     -e "GOARCH=amd64" \
     -e "CGO_ENABLED=0" \
     gorson_builder \
-        go build -o bin/$binary_name
+        go build -o "bin/$binary_name"
 done
