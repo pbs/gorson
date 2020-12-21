@@ -1,6 +1,7 @@
 package io
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,10 +9,12 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"os"
 	"reflect"
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/pbs/gorson/internal/gorson/util"
 
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -166,6 +169,101 @@ func WriteToParameterStore(parameters map[string]string, path util.ParameterStor
 	case <-time.After(timeout):
 		return errors.New("timeout")
 	}
+}
+
+// determineParameterDelta determines the parameters that are present in parameter store, but missing locally
+func determineParameterDelta(parameters map[string]string, ssmParams map[string]string) []string {
+	parameterDelta := make([]string, 0)
+	for ssmParam := range ssmParams {
+		if _, ok := parameters[ssmParam]; !ok {
+			parameterDelta = append(parameterDelta, ssmParam)
+		}
+	}
+	return parameterDelta
+}
+
+// promptUserDeltaWarning prompt the user with a warning based on the delta of parameters in file vs ssm, and return approval
+func promptUserDeltaWarning(parameters []string, path util.ParameterStorePath) (bool, error) {
+	red := color.New(color.FgRed).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
+	fmt.Println("The following are present in the file, but not in parameter store:")
+	for _, parameter := range parameters {
+		fullParameterPath := fmt.Sprintf("%s%s\n", path.String(), parameter)
+		fmt.Printf(red(fullParameterPath))
+	}
+	fmt.Printf("Are you sure you'd like to %s these parameters?\nType %s to proceed:\n", red("delete"), green("yes"))
+	reader := bufio.NewReader(os.Stdin)
+	text, err := reader.ReadString('\n')
+	if err != nil {
+		return false, err
+	}
+	approval := strings.TrimSpace(text) == "yes"
+	return approval, nil
+}
+
+// find returns the index and presence of a value in a slice and returns -1, false if it's not there.
+func find(slice []*string, val *string) (int, bool) {
+	for i, item := range slice {
+		if *item == *val {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+// deleteFromParameterStore deletes parameters at a given path from parameter store
+func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client ssmiface.SSMAPI) error {
+	fullPathParameters := make([]*string, len(parameters))
+	for idx, parameter := range parameters {
+		fullPathParameter := fmt.Sprintf("%s%s", path.String(), parameter)
+		fullPathParameters[idx] = &fullPathParameter
+	}
+
+	deleteParametersInput := ssm.DeleteParametersInput{
+		Names: fullPathParameters,
+	}
+
+	output, err := client.DeleteParameters(&deleteParametersInput)
+
+	if len(output.DeletedParameters) != len(parameters) {
+		fmt.Println("Some parameters failed to delete:")
+		for _, parameter := range fullPathParameters {
+			idx, found := find(output.DeletedParameters, parameter)
+			if !found {
+				fmt.Println(*output.DeletedParameters[idx])
+			}
+		}
+	}
+	if len(output.InvalidParameters) != 0 {
+		fmt.Println("Some parameters failed to delete due to being invalid:")
+		for _, invalidParameter := range output.InvalidParameters {
+			fmt.Println(*invalidParameter)
+		}
+	}
+
+	return err
+}
+
+// DeleteDeltaFromParameterStore deletes the parameters that exist in parameter store, but not in the parameters variable
+func DeleteDeltaFromParameterStore(parameters map[string]string, path util.ParameterStorePath, autoApprove bool, client ssmiface.SSMAPI) error {
+	if client == nil {
+		client = getSSMClient()
+	}
+	ssmParams := ReadFromParameterStore(path, client)
+	parameterDelta := determineParameterDelta(parameters, ssmParams)
+	if len(parameterDelta) == 0 {
+		return nil
+	}
+	if !autoApprove {
+		approved, err := promptUserDeltaWarning(parameterDelta, path)
+		if err != nil {
+			return err
+		}
+		if !approved {
+			return nil
+		}
+	}
+	return deleteFromParameterStore(parameterDelta, path, client)
 }
 
 // ReadJSONFile reads a json file of key-value pairs
