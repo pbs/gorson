@@ -1,4 +1,4 @@
-FROM golang:1.14.5-alpine
+FROM golang:1.15-alpine
 
 # borrowed with gratitude from confd
 # https://github.com/kelseyhightower/confd/blob/master/Dockerfile.build.alpine?at=09f6676
