@@ -68,6 +68,7 @@ func (m mockedDeleteDelta) GetParametersByPath(input *ssm.GetParametersByPathInp
 func (m mockedDeleteDelta) DeleteParamters(input *ssm.DeleteParametersInput) (*ssm.DeleteParametersOutput, error) {
 	deletedParams := make([]*string, 0)
 	invalidParams := make([]*string, 0)
+
 	if m.deleteSuccessful {
 		for _, name := range input.Names {
 			deletedParams = append(deletedParams, name)
@@ -81,9 +82,7 @@ func (m mockedDeleteDelta) DeleteParamters(input *ssm.DeleteParametersInput) (*s
 		DeletedParameters: deletedParams,
 		InvalidParameters: invalidParams,
 	}
-	m.deleteParametersRetVal.Resp = deleteParametersResponse
-	m.deleteParametersRetVal.Err = nil
-	return &m.deleteParametersRetVal.Resp, m.deleteParametersRetVal.Err
+	return &deleteParametersResponse, nil
 }
 
 type WriteSingleParamTestCase struct {
@@ -116,7 +115,7 @@ func TestReadFromParameterStore(t *testing.T) {
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("name"),
 							Value: aws.String("value"),
 						},
@@ -272,11 +271,11 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
 						},
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramTwo"),
 							Value: aws.String("valueTwo"),
 						},
@@ -297,11 +296,11 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
 						},
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramTwo"),
 							Value: aws.String("valueTwo"),
 						},
@@ -320,11 +319,11 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
 						},
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramTwo"),
 							Value: aws.String("valueTwo"),
 						},
@@ -345,11 +344,11 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
 						},
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramTwo"),
 							Value: aws.String("valueTwo"),
 						},
@@ -368,11 +367,11 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
 						},
-						&ssm.Parameter{
+						{
 							Name:  aws.String("paramTwo"),
 							Value: aws.String("valueTwo"),
 						},
@@ -395,7 +394,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			getParametersByPathRetVal: c.GetParamsRetVal,
 		}
 
-		err := DeleteDeltaFromParameterStore(
+		deletedParams, err := DeleteDeltaFromParameterStore(
 			c.FileParams,
 			*path,
 			true,
@@ -406,10 +405,10 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			t.Fatalf("%d unexpected error %v", i, err)
 		}
 
-		for _, param := range m.deleteParametersRetVal.Resp.DeletedParameters {
-			_, present := findStringInSice(c.Expected, *param)
+		for _, param := range deletedParams {
+			_, present := findStringInSice(c.Expected, param)
 			if !present {
-				t.Fatalf("%d expected %s in %s\n", i, c.Expected, *param)
+				t.Fatalf("%d expected %s in %s\n", i, c.Expected, param)
 			}
 		}
 	}

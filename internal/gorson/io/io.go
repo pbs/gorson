@@ -212,7 +212,7 @@ func find(slice []*string, val *string) (int, bool) {
 }
 
 // deleteFromParameterStore deletes parameters at a given path from parameter store
-func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client ssmiface.SSMAPI) error {
+func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client ssmiface.SSMAPI) ([]string, error) {
 	fullPathParameters := make([]*string, len(parameters))
 	for idx, parameter := range parameters {
 		fullPathParameter := fmt.Sprintf("%s%s", path.String(), parameter)
@@ -241,26 +241,31 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 		}
 	}
 
-	return err
+	deletedParams := []string{}
+	for _, deletedParam := range output.DeletedParameters {
+		deletedParams = append(deletedParams, *deletedParam)
+	}
+
+	return deletedParams, err
 }
 
 // DeleteDeltaFromParameterStore deletes the parameters that exist in parameter store, but not in the parameters variable
-func DeleteDeltaFromParameterStore(parameters map[string]string, path util.ParameterStorePath, autoApprove bool, client ssmiface.SSMAPI) error {
+func DeleteDeltaFromParameterStore(parameters map[string]string, path util.ParameterStorePath, autoApprove bool, client ssmiface.SSMAPI) ([]string, error) {
 	if client == nil {
 		client = getSSMClient()
 	}
 	ssmParams := ReadFromParameterStore(path, client)
 	parameterDelta := determineParameterDelta(parameters, ssmParams)
 	if len(parameterDelta) == 0 {
-		return nil
+		return []string{}, nil
 	}
 	if !autoApprove {
 		approved, err := promptUserDeltaWarning(parameterDelta, path)
 		if err != nil {
-			return err
+			return []string{}, err
 		}
 		if !approved {
-			return nil
+			return []string{}, nil
 		}
 	}
 	return deleteFromParameterStore(parameterDelta, path, client)
