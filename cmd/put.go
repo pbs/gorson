@@ -26,7 +26,7 @@ func put(path string, parameters map[string]string, timeout string, delete bool,
 		log.Fatal(err)
 	}
 	if delete {
-		err = io.DeleteDeltaFromParameterStore(parameters, *p, autoApprove, nil)
+		_, err = io.DeleteDeltaFromParameterStore(parameters, *p, autoApprove, nil)
 		if err != nil {
 			log.Fatal(err)
 		}

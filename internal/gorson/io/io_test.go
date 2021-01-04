@@ -18,8 +18,13 @@ type mockedPutParameterReturnPair struct {
 	Err  awserr.Error
 }
 
-type mockedGetParameterReturnPair struct {
+type mockedGetParametersByPathReturnPair struct {
 	Resp ssm.GetParametersByPathOutput
+	Err  awserr.Error
+}
+
+type mockedDeleteParametersReturnPair struct {
+	Resp ssm.DeleteParametersOutput
 	Err  awserr.Error
 }
 
@@ -31,7 +36,14 @@ type mockedPutParameter struct {
 
 type mockedGetParameter struct {
 	ssmiface.SSMAPI
-	retVal mockedGetParameterReturnPair
+	retVal mockedGetParametersByPathReturnPair
+}
+
+type mockedDeleteDelta struct {
+	ssmiface.SSMAPI
+	deleteSuccessful          bool
+	getParametersByPathRetVal mockedGetParametersByPathReturnPair
+	deleteParametersRetVal    mockedDeleteParametersReturnPair
 }
 
 func (m mockedPutParameter) PutParameter(in *ssm.PutParameterInput) (*ssm.PutParameterOutput, error) {
@@ -49,29 +61,57 @@ func (m mockedGetParameter) GetParametersByPath(input *ssm.GetParametersByPathIn
 	return &m.retVal.Resp, m.retVal.Err
 }
 
+func (m mockedDeleteDelta) GetParametersByPath(input *ssm.GetParametersByPathInput) (*ssm.GetParametersByPathOutput, error) {
+	return &m.getParametersByPathRetVal.Resp, m.getParametersByPathRetVal.Err
+}
+
+func (m mockedDeleteDelta) DeleteParameters(input *ssm.DeleteParametersInput) (*ssm.DeleteParametersOutput, error) {
+	deletedParams := make([]*string, 0)
+	invalidParams := make([]*string, 0)
+
+	if m.deleteSuccessful {
+		deletedParams = append(deletedParams, input.Names...)
+	} else {
+		invalidParams = append(invalidParams, input.Names...)
+	}
+	deleteParametersResponse := ssm.DeleteParametersOutput{
+		DeletedParameters: deletedParams,
+		InvalidParameters: invalidParams,
+	}
+	return &deleteParametersResponse, nil
+}
+
 type WriteSingleParamTestCase struct {
-	RetVals  []mockedPutParameterReturnPair
-	Expected error
+	PutParameterReturnRetVals []mockedPutParameterReturnPair
+	Expected                  error
 }
 
 type WriteToParameterStoreTestCase struct {
-	RetVals  []mockedPutParameterReturnPair
-	Timeout  time.Duration
-	Expected error
+	PutParameterReturnRetVals []mockedPutParameterReturnPair
+	Timeout                   time.Duration
+	Expected                  error
 }
 
 type ReadFromParameterStoreTestCase struct {
-	RetVal   mockedGetParameterReturnPair
-	Expected map[string]string
+	GetParamsRetVal mockedGetParametersByPathReturnPair
+	Expected        map[string]string
+}
+
+type DeleteDeltaFromParameterStoreTestCase struct {
+	FileParams         map[string]string
+	GetParamsRetVal    mockedGetParametersByPathReturnPair
+	DeleteParamsRetVal mockedDeleteParametersReturnPair
+	DeleteSuccessful   bool
+	Expected           []string
 }
 
 func TestReadFromParameterStore(t *testing.T) {
 	cases := []ReadFromParameterStoreTestCase{
 		{
-			RetVal: mockedGetParameterReturnPair{
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
 					Parameters: []*ssm.Parameter{
-						&ssm.Parameter{
+						{
 							Name:  aws.String("name"),
 							Value: aws.String("value"),
 						},
@@ -88,7 +128,7 @@ func TestReadFromParameterStore(t *testing.T) {
 	path := util.NewParameterStorePath("/path/parameter")
 
 	for i, c := range cases {
-		parameters := ReadFromParameterStore(*path, mockedGetParameter{retVal: c.RetVal})
+		parameters := ReadFromParameterStore(*path, mockedGetParameter{retVal: c.GetParamsRetVal})
 		if !reflect.DeepEqual(c.Expected, parameters) {
 			t.Fatalf("%v expected %v, got %v", i, c.Expected, parameters)
 		}
@@ -99,7 +139,7 @@ func TestWriteSingleParameter(t *testing.T) {
 	cases := []WriteSingleParamTestCase{
 		// happy case: no throttling, no error. smooth sailing!
 		{
-			RetVals: []mockedPutParameterReturnPair{
+			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
 						Tier:    aws.String("mock"),
@@ -112,7 +152,7 @@ func TestWriteSingleParameter(t *testing.T) {
 		},
 		// if AWS gives us an error we don't know how to handle, pass it right on through for the caller to deal with
 		{
-			RetVals: []mockedPutParameterReturnPair{
+			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
 						Tier:    aws.String("mock"),
@@ -125,7 +165,7 @@ func TestWriteSingleParameter(t *testing.T) {
 		},
 		// if AWS gives us a throttling exception, then a success, should be fine after our auto-retry
 		{
-			RetVals: []mockedPutParameterReturnPair{
+			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
 						Tier:    aws.String("mock"),
@@ -148,7 +188,7 @@ func TestWriteSingleParameter(t *testing.T) {
 	for i, c := range cases {
 		outputChannel := make(chan WriteResult, 1)
 		callCount := 0
-		writeSingleParameter(outputChannel, mockedPutParameter{retVals: c.RetVals, callCount: &callCount}, "key", "value", 0)
+		writeSingleParameter(outputChannel, mockedPutParameter{retVals: c.PutParameterReturnRetVals, callCount: &callCount}, "key", "value", 0)
 		result := <-outputChannel
 		if c.Expected != nil {
 			if result.Error == nil {
@@ -169,7 +209,7 @@ func TestWriteToParameterStore(t *testing.T) {
 	cases := []WriteToParameterStoreTestCase{
 		// Plenty of time to pretend to put parameters
 		{
-			RetVals: []mockedPutParameterReturnPair{
+			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
 						Tier:    aws.String("mock"),
@@ -183,7 +223,7 @@ func TestWriteToParameterStore(t *testing.T) {
 		},
 		// Not enough time to pretend to put parameters
 		{
-			RetVals: []mockedPutParameterReturnPair{
+			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
 						Tier:    aws.String("mock"),
@@ -200,7 +240,7 @@ func TestWriteToParameterStore(t *testing.T) {
 	path := util.NewParameterStorePath("/path/")
 	for i, c := range cases {
 		callCount := 0
-		err := WriteToParameterStore(map[string]string{"path": "value"}, *path, c.Timeout, mockedPutParameter{retVals: c.RetVals, callCount: &callCount})
+		err := WriteToParameterStore(map[string]string{"path": "value"}, *path, c.Timeout, mockedPutParameter{retVals: c.PutParameterReturnRetVals, callCount: &callCount})
 		if c.Expected != nil {
 			if err == nil {
 				t.Fatalf("%d expected %d, got %d", i, c.Expected, err)
@@ -214,4 +254,167 @@ func TestWriteToParameterStore(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestDeleteDeltaFromParameterStore(t *testing.T) {
+	cases := []DeleteDeltaFromParameterStoreTestCase{
+		// Nothing to delete
+		{
+			FileParams: map[string]string{
+				"paramOne": "valueOne",
+				"paramTwo": "valueTwo",
+			},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected:         []string{},
+		},
+		// Still nothing to delete. Theoretically impossible, as param three should have been pushed
+		{
+			FileParams: map[string]string{
+				"paramOne":   "valueOne",
+				"paramTwo":   "valueTwo",
+				"paramThree": "valueThree",
+			},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected:         []string{},
+		},
+		// One thing to delete
+		{
+			FileParams: map[string]string{
+				"paramOne": "valueOne",
+			},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected: []string{
+				"/path/paramTwo",
+			},
+		},
+		// Other thing to delete
+		{
+			FileParams: map[string]string{
+				"paramTwo": "valueTwo",
+			},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected: []string{
+				"/path/paramOne",
+			},
+		},
+		// Two things to delete
+		{
+			FileParams: map[string]string{},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected: []string{
+				"/path/paramOne",
+				"/path/paramTwo",
+			},
+		},
+	}
+
+	path := util.NewParameterStorePath("/path/")
+	for i, c := range cases {
+		m := mockedDeleteDelta{
+			deleteSuccessful:          c.DeleteSuccessful,
+			getParametersByPathRetVal: c.GetParamsRetVal,
+		}
+
+		deletedParams, err := DeleteDeltaFromParameterStore(
+			c.FileParams,
+			*path,
+			true,
+			m,
+		)
+
+		if err != nil {
+			t.Fatalf("%d unexpected error %v", i, err)
+		}
+
+		for _, param := range deletedParams {
+			_, present := findStringInSice(c.Expected, param)
+			if !present {
+				t.Fatalf("%d expected %s in %s\n", i, c.Expected, param)
+			}
+		}
+	}
+}
+
+func findStringInSice(slice []string, val string) (int, bool) {
+	for i, item := range slice {
+		if item == val {
+			return i, true
+		}
+	}
+	return -1, false
 }
