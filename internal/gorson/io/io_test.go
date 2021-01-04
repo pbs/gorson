@@ -65,18 +65,14 @@ func (m mockedDeleteDelta) GetParametersByPath(input *ssm.GetParametersByPathInp
 	return &m.getParametersByPathRetVal.Resp, m.getParametersByPathRetVal.Err
 }
 
-func (m mockedDeleteDelta) DeleteParamters(input *ssm.DeleteParametersInput) (*ssm.DeleteParametersOutput, error) {
+func (m mockedDeleteDelta) DeleteParameters(input *ssm.DeleteParametersInput) (*ssm.DeleteParametersOutput, error) {
 	deletedParams := make([]*string, 0)
 	invalidParams := make([]*string, 0)
 
 	if m.deleteSuccessful {
-		for _, name := range input.Names {
-			deletedParams = append(deletedParams, name)
-		}
+		deletedParams = append(deletedParams, input.Names...)
 	} else {
-		for _, name := range input.Names {
-			invalidParams = append(invalidParams, name)
-		}
+		invalidParams = append(invalidParams, input.Names...)
 	}
 	deleteParametersResponse := ssm.DeleteParametersOutput{
 		DeletedParameters: deletedParams,
@@ -358,7 +354,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			},
 			DeleteSuccessful: true,
 			Expected: []string{
-				"/path/paramTwo",
+				"/path/paramOne",
 			},
 		},
 		// Two things to delete
