@@ -116,6 +116,34 @@ chmod +x /opt/gorson/bin/gorson
 export PATH="$PATH:/opt/gorson/bin"
 ```
 
+## asdf
+
+Install using asdf
+
+Add asdf plugin
+
+```bash
+asdf plugin add gorson https://github.com/pbs/asdf-pbs.git
+```
+
+List available versions
+
+```bash
+asdf list-all gorson
+```
+
+Install a particular version
+
+```bash
+asdf install gorson 6
+```
+
+Make a particular version your default
+
+```bash
+asdf global gorson 6
+```
+
 # Notes
 
 These environment variables will affect the AWS session behavior:
