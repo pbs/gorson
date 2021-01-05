@@ -69,6 +69,26 @@ beta=the_beta_value
 gorson put /a/parameter/store/path/ --file=./new-values.json
 ```
 
+## Delete parameter difference on put
+
+```bash
+$ gorson put /a/parameter/store/path/ --file=./different-values.json --delete
+
+The following are present in the file, but not in parameter store:
+/a/parameter/store/path/gamma
+Are you sure you'd like to delete these parameters?
+Type yes to proceed:
+
+```
+
+## Auto-approve prompts
+
+If you would like to answer 'yes' to any prompts that require it, append `--auto-approve`.
+
+## Deactivate color
+
+If you would prefer the output of commands to be colorless, append `--no-color`.
+
 # Installation
 
 Currently gorson ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/pbs/gorson/releases)
