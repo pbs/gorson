@@ -186,7 +186,7 @@ func determineParameterDelta(parameters map[string]string, ssmParams map[string]
 func promptUserDeltaWarning(parameters []string, path util.ParameterStorePath) (bool, error) {
 	red := color.New(color.FgRed).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
-	fmt.Println("The following are present in the file, but not in parameter store:")
+	fmt.Println("The following are not present in the file, but are in parameter store:")
 	for _, parameter := range parameters {
 		fullParameterPath := fmt.Sprintf("%s%s\n", path.String(), parameter)
 		fmt.Printf(red(fullParameterPath))

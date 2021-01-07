@@ -74,7 +74,7 @@ gorson put /a/parameter/store/path/ --file=./new-values.json
 ```bash
 $ gorson put /a/parameter/store/path/ --file=./different-values.json --delete
 
-The following are present in the file, but not in parameter store:
+The following are not present in the file, but are in parameter store:
 /a/parameter/store/path/gamma
 Are you sure you'd like to delete these parameters?
 Type yes to proceed:
