@@ -10,11 +10,11 @@ This is an experimental library, and is currently unsupported.
 
 ## Download parameters from parameter store as a json file
 
-```
-$ gorson get /a/parameter/store/path/ > ./example.json
+```bash
+gorson get /a/parameter/store/path/ > ./example.json
 ```
 
-```
+```bash
 $ cat ./example.json
 
 {
@@ -26,11 +26,11 @@ $ cat ./example.json
 
 There's also a `--format` flag to pass in which format you want the parameters to export as.
 
-```
-$ gorson get --format yaml /a/parameter/store/path/ > ./example.yml
+```bash
+gorson get --format yaml /a/parameter/store/path/ > ./example.yml
 ```
 
-```
+```bash
 $ cat ./example.yml
 
 alpha: "the_alpha_value"
@@ -38,11 +38,11 @@ beta: "the_beta_value"
 delta: "the_delta_value"
 ```
 
-```
-$ gorson get --format env /a/parameter/store/path/ > ./.env
+```bash
+gorson get --format env /a/parameter/store/path/ > ./.env
 ```
 
-```
+```bash
 $ cat ./.env
 
 alpha="the_alpha_value"
@@ -52,11 +52,11 @@ delta="the_delta_value"
 
 ## Load parameters as environment variables from a json file
 
-```
+```bash
 source <(gorson load ./example.json)
 ```
 
-```
+```bash
 $ env | grep 'alpha\|beta\|delta'
 alpha=the_alpha_value
 delta=the_delta_value
@@ -65,9 +65,29 @@ beta=the_beta_value
 
 ## Upload parameters to parameter store from a json file
 
+```bash
+gorson put /a/parameter/store/path/ --file=./new-values.json
 ```
-$ gorson put /a/parameter/store/path/ --file=./new-values.json
+
+## Delete parameter difference on put
+
+```bash
+$ gorson put /a/parameter/store/path/ --file=./different-values.json --delete
+
+The following are not present in the file, but are in parameter store:
+/a/parameter/store/path/gamma
+Are you sure you'd like to delete these parameters?
+Type yes to proceed:
+
 ```
+
+## Auto-approve prompts
+
+If you would like to answer 'yes' to any prompts that require it, append `--auto-approve`.
+
+## Deactivate color
+
+If you would prefer the output of commands to be colorless, append `--no-color`.
 
 # Installation
 
@@ -75,36 +95,65 @@ Currently gorson ships binaries for OS X and Linux 64bit systems. You can downlo
 
 ## OS X
 
-```
-$ wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
+```bash
+wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
 ```
 
 ## Linux
 
 Download the binary
-```
-$ wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
+
+```bash
+wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
 ```
 
 Move the binary to an installation path, make it executable, and add to path
-```
+
+```bash
 mkdir -p /opt/gorson/bin
 mv gorson-6-linux-amd64 /opt/gorson/bin/gorson
 chmod +x /opt/gorson/bin/gorson
 export PATH="$PATH:/opt/gorson/bin"
 ```
 
+## asdf
+
+Install using asdf
+
+Add asdf plugin
+
+```bash
+asdf plugin add gorson https://github.com/pbs/asdf-pbs.git
+```
+
+List available versions
+
+```bash
+asdf list-all gorson
+```
+
+Install a particular version
+
+```bash
+asdf install gorson 6
+```
+
+Make a particular version your default
+
+```bash
+asdf global gorson 6
+```
+
 # Notes
 
 These environment variables will affect the AWS session behavior:
 
-https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html
+<https://docs.aws.amazon.com/sdk-for-go/v1/developer-guide/configuring-sdk.html>
 
+* `AWS_PROFILE`: use a named profile from your `~/.aws/config` file (see <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html>)
+* `AWS_REGION`: use a specific AWS region (see <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html>)
 
-* `AWS_PROFILE`: use a named profile from your `~/.aws/config` file (see https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html)
-* `AWS_REGION`: use a specific AWS region (see https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.RegionsAndAvailabilityZones.html)
-
-```
+```bash
 AWS_PROFILE=example-profile AWS_REGION=us-east-1 gorson get /a/parameter/store/path/
 ```
 
