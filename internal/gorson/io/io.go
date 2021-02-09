@@ -212,38 +212,61 @@ func find(slice []*string, val *string) (int, bool) {
 }
 
 // deleteFromParameterStore deletes parameters at a given path from parameter store
-func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client ssmiface.SSMAPI) ([]string, error) {
+func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client ssmiface.SSMAPI) (deletedParams []string, err error) {
+	deletedParams = []string{}
+
 	fullPathParameters := make([]*string, len(parameters))
 	for idx, parameter := range parameters {
 		fullPathParameter := fmt.Sprintf("%s%s", path.String(), parameter)
 		fullPathParameters[idx] = &fullPathParameter
 	}
 
-	deleteParametersInput := ssm.DeleteParametersInput{
-		Names: fullPathParameters,
-	}
+	// DeleteParameters only works if the length of Names
+	// is <= 10. We have to delete parameters in batches of 10.
+	deleteIterations := len(fullPathParameters) / 10
+	for deleteIteration := 0; deleteIteration < deleteIterations; deleteIteration++ {
+		parameterIdxStart := deleteIteration * 10
+		parameterIdxEnd := parameterIdxStart + 10
 
-	output, err := client.DeleteParameters(&deleteParametersInput)
+		// Handling final iteration, where we might have less than a full
+		// batch of 10.
+		if parameterIdxEnd > len(fullPathParameters) {
+			parameterIdxEnd = len(fullPathParameters)
+		}
 
-	if len(output.DeletedParameters) != len(parameters) {
-		fmt.Println("Some parameters failed to delete:")
-		for _, parameter := range fullPathParameters {
-			idx, found := find(output.DeletedParameters, parameter)
-			if !found {
-				fmt.Println(*output.DeletedParameters[idx])
+		parametersToDelete := fullPathParameters[parameterIdxStart:parameterIdxEnd]
+
+		deleteParametersInput := ssm.DeleteParametersInput{
+			Names: parametersToDelete,
+		}
+		output, err := client.DeleteParameters(&deleteParametersInput)
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		if len(output.DeletedParameters) != len(parametersToDelete) {
+			fmt.Println("Some parameters failed to delete:")
+			for _, parameter := range parametersToDelete {
+				fmt.Println(deleteParametersInput)
+				fmt.Println(*parameter)
+				_, found := find(output.DeletedParameters, parameter)
+				if !found {
+					fmt.Println(parameter)
+				}
 			}
 		}
-	}
-	if len(output.InvalidParameters) != 0 {
-		fmt.Println("Some parameters failed to delete due to being invalid:")
-		for _, invalidParameter := range output.InvalidParameters {
-			fmt.Println(*invalidParameter)
-		}
-	}
 
-	deletedParams := []string{}
-	for _, deletedParam := range output.DeletedParameters {
-		deletedParams = append(deletedParams, *deletedParam)
+		if len(output.InvalidParameters) != 0 {
+			fmt.Println("Some parameters failed to delete due to being invalid:")
+			for _, invalidParameter := range output.InvalidParameters {
+				fmt.Println(*invalidParameter)
+			}
+		}
+
+		for _, deletedParam := range output.DeletedParameters {
+			deletedParams = append(deletedParams, *deletedParam)
+		}
 	}
 
 	return deletedParams, err
