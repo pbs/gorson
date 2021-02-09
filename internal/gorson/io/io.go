@@ -248,8 +248,6 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 		if len(output.DeletedParameters) != len(parametersToDelete) {
 			fmt.Println("Some parameters failed to delete:")
 			for _, parameter := range parametersToDelete {
-				fmt.Println(deleteParametersInput)
-				fmt.Println(*parameter)
 				_, found := find(output.DeletedParameters, parameter)
 				if !found {
 					fmt.Println(parameter)
