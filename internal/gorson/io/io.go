@@ -221,33 +221,38 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 		fullPathParameters[idx] = &fullPathParameter
 	}
 
-	// DeleteParameters only works if the length of Names
-	// is <= 10. We have to delete parameters in batches of 10.
-	deleteIterations := len(fullPathParameters) / 10
-	for deleteIteration := 0; deleteIteration < deleteIterations; deleteIteration++ {
-		parameterIdxStart := deleteIteration * 10
-		parameterIdxEnd := parameterIdxStart + 10
+	var chunkSize int
+	var chunkedParameters [][]*string
 
-		// Handling final iteration, where we might have less than a full
-		// batch of 10.
-		if parameterIdxEnd > len(fullPathParameters) {
-			parameterIdxEnd = len(fullPathParameters)
+	for {
+		if len(fullPathParameters) == 0 {
+			break
 		}
 
-		parametersToDelete := fullPathParameters[parameterIdxStart:parameterIdxEnd]
+		if len(fullPathParameters) < 10 {
+			chunkSize = len(fullPathParameters)
+		} else {
+			chunkSize = 10
+		}
 
+		chunkedParameters = append(chunkedParameters, fullPathParameters[0:chunkSize])
+		fullPathParameters = fullPathParameters[chunkSize:]
+	}
+
+	for _, params := range chunkedParameters {
 		deleteParametersInput := ssm.DeleteParametersInput{
-			Names: parametersToDelete,
+			Names: params,
 		}
+
 		output, err := client.DeleteParameters(&deleteParametersInput)
 
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		if len(output.DeletedParameters) != len(parametersToDelete) {
+		if len(output.DeletedParameters) != len(params) {
 			fmt.Println("Some parameters failed to delete:")
-			for _, parameter := range parametersToDelete {
+			for _, parameter := range params {
 				_, found := find(output.DeletedParameters, parameter)
 				if !found {
 					fmt.Println(parameter)
