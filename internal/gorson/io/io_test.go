@@ -381,6 +381,244 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 				"/path/paramTwo",
 			},
 		},
+		// Twenty things to delete
+		{
+			FileParams: map[string]string{},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+						{
+							Name:  aws.String("paramThree"),
+							Value: aws.String("valueThree"),
+						},
+						{
+							Name:  aws.String("paramFour"),
+							Value: aws.String("valueFour"),
+						},
+						{
+							Name:  aws.String("paramFive"),
+							Value: aws.String("valueFive"),
+						},
+						{
+							Name:  aws.String("paramSix"),
+							Value: aws.String("valueSix"),
+						},
+						{
+							Name:  aws.String("paramSeven"),
+							Value: aws.String("valueSeven"),
+						},
+						{
+							Name:  aws.String("paramEight"),
+							Value: aws.String("valueEight"),
+						},
+						{
+							Name:  aws.String("paramNine"),
+							Value: aws.String("valueNine"),
+						},
+						{
+							Name:  aws.String("paramTen"),
+							Value: aws.String("valueTen"),
+						},
+						{
+							Name:  aws.String("paramEleven"),
+							Value: aws.String("valueEleven"),
+						},
+						{
+							Name:  aws.String("paramTwelve"),
+							Value: aws.String("valueTwelve"),
+						},
+						{
+							Name:  aws.String("paramThirteen"),
+							Value: aws.String("valueThirteen"),
+						},
+						{
+							Name:  aws.String("paramFourteen"),
+							Value: aws.String("valueFourteen"),
+						},
+						{
+							Name:  aws.String("paramFifteen"),
+							Value: aws.String("valueFifteen"),
+						},
+						{
+							Name:  aws.String("paramSixteen"),
+							Value: aws.String("valueSixteen"),
+						},
+						{
+							Name:  aws.String("paramSeventeen"),
+							Value: aws.String("valueSeventeen"),
+						},
+						{
+							Name:  aws.String("paramEighteen"),
+							Value: aws.String("valueEighteen"),
+						},
+						{
+							Name:  aws.String("paramNineteen"),
+							Value: aws.String("valueNineteen"),
+						},
+						{
+							Name:  aws.String("paramTwenty"),
+							Value: aws.String("valueTwenty"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected: []string{
+				"/path/paramOne",
+				"/path/paramTwo",
+				"/path/paramThree",
+				"/path/paramFour",
+				"/path/paramFive",
+				"/path/paramSix",
+				"/path/paramSeven",
+				"/path/paramEight",
+				"/path/paramNine",
+				"/path/paramTen",
+				"/path/paramEleven",
+				"/path/paramTwelve",
+				"/path/paramThirteen",
+				"/path/paramFourteen",
+				"/path/paramFifteen",
+				"/path/paramSixteen",
+				"/path/paramSeventeen",
+				"/path/paramEighteen",
+				"/path/paramNineteen",
+				"/path/paramTwenty",
+			},
+		},
+		// Twenty-two things to delete
+		{
+			FileParams: map[string]string{},
+			GetParamsRetVal: mockedGetParametersByPathReturnPair{
+				Resp: ssm.GetParametersByPathOutput{
+					Parameters: []*ssm.Parameter{
+						{
+							Name:  aws.String("paramOne"),
+							Value: aws.String("valueOne"),
+						},
+						{
+							Name:  aws.String("paramTwo"),
+							Value: aws.String("valueTwo"),
+						},
+						{
+							Name:  aws.String("paramThree"),
+							Value: aws.String("valueThree"),
+						},
+						{
+							Name:  aws.String("paramFour"),
+							Value: aws.String("valueFour"),
+						},
+						{
+							Name:  aws.String("paramFive"),
+							Value: aws.String("valueFive"),
+						},
+						{
+							Name:  aws.String("paramSix"),
+							Value: aws.String("valueSix"),
+						},
+						{
+							Name:  aws.String("paramSeven"),
+							Value: aws.String("valueSeven"),
+						},
+						{
+							Name:  aws.String("paramEight"),
+							Value: aws.String("valueEight"),
+						},
+						{
+							Name:  aws.String("paramNine"),
+							Value: aws.String("valueNine"),
+						},
+						{
+							Name:  aws.String("paramTen"),
+							Value: aws.String("valueTen"),
+						},
+						{
+							Name:  aws.String("paramEleven"),
+							Value: aws.String("valueEleven"),
+						},
+						{
+							Name:  aws.String("paramTwelve"),
+							Value: aws.String("valueTwelve"),
+						},
+						{
+							Name:  aws.String("paramThirteen"),
+							Value: aws.String("valueThirteen"),
+						},
+						{
+							Name:  aws.String("paramFourteen"),
+							Value: aws.String("valueFourteen"),
+						},
+						{
+							Name:  aws.String("paramFifteen"),
+							Value: aws.String("valueFifteen"),
+						},
+						{
+							Name:  aws.String("paramSixteen"),
+							Value: aws.String("valueSixteen"),
+						},
+						{
+							Name:  aws.String("paramSeventeen"),
+							Value: aws.String("valueSeventeen"),
+						},
+						{
+							Name:  aws.String("paramEighteen"),
+							Value: aws.String("valueEighteen"),
+						},
+						{
+							Name:  aws.String("paramNineteen"),
+							Value: aws.String("valueNineteen"),
+						},
+						{
+							Name:  aws.String("paramTwenty"),
+							Value: aws.String("valueTwenty"),
+						},
+						{
+							Name:  aws.String("paramTwentyOne"),
+							Value: aws.String("valueTwentyOne"),
+						},
+						{
+							Name:  aws.String("paramTwentyTwo"),
+							Value: aws.String("valueTwentyTwo"),
+						},
+					},
+				},
+				Err: nil,
+			},
+			DeleteSuccessful: true,
+			Expected: []string{
+				"/path/paramOne",
+				"/path/paramTwo",
+				"/path/paramThree",
+				"/path/paramFour",
+				"/path/paramFive",
+				"/path/paramSix",
+				"/path/paramSeven",
+				"/path/paramEight",
+				"/path/paramNine",
+				"/path/paramTen",
+				"/path/paramEleven",
+				"/path/paramTwelve",
+				"/path/paramThirteen",
+				"/path/paramFourteen",
+				"/path/paramFifteen",
+				"/path/paramSixteen",
+				"/path/paramSeventeen",
+				"/path/paramEighteen",
+				"/path/paramNineteen",
+				"/path/paramTwenty",
+				"/path/paramTwentyOne",
+				"/path/paramTwentyTwo",
+			},
+		},
 	}
 
 	path := util.NewParameterStorePath("/path/")
