@@ -104,7 +104,7 @@ wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
 Download the binary
 
 ```bash
-wget https://github.com/pbs/gorson/releases/download/9/gorson-9-darwin-amd64
+wget https://github.com/pbs/gorson/releases/download/9/gorson-9-linux-amd64
 ```
 
 Move the binary to an installation path, make it executable, and add to path
