@@ -96,7 +96,7 @@ Currently gorson ships binaries for OS X and Linux 64bit systems. You can downlo
 ## OS X
 
 ```bash
-wget https://github.com/pbs/gorson/releases/download/6/gorson-6-darwin-amd64
+wget https://github.com/pbs/gorson/releases/download/9/gorson-9-darwin-amd64
 ```
 
 ## Linux
@@ -135,13 +135,13 @@ asdf list-all gorson
 Install a particular version
 
 ```bash
-asdf install gorson 8
+asdf install gorson 9
 ```
 
 Make a particular version your default
 
 ```bash
-asdf global gorson 8
+asdf global gorson 9
 ```
 
 # Notes
