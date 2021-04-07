@@ -27,6 +27,8 @@ find_and_replace "s/$CURRENT/$NEW/g" ./internal/gorson/version/version.go
 find_and_replace "s/gorson-$CURRENT-([^-]+)-amd64/gorson-$NEW-\1-amd64/g" README.md
 # asdf version
 find_and_replace "s/gorson $CURRENT/gorson $NEW/g" README.md
+# GitHub release version
+find_and_replace "s~github.com/pbs/gorson/releases/download/$CURRENT~github.com/pbs/gorson/releases/download/$NEW~g" README.md
 
 git checkout -b "release/$NEW"
 git add README.md ./internal/gorson/version/version.go
