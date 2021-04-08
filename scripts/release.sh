@@ -18,7 +18,7 @@ function find_and_replace() {
 
 cd "$( dirname "${BASH_SOURCE[0]}" )/.."
 
-CURRENT=$(grep -E -o '[0-9]' ./internal/gorson/version/version.go)
+CURRENT=$(grep -E -o '[0-9]+' ./internal/gorson/version/version.go)
 NEW=$(( CURRENT + 1))
 
 # Internal gorson version
