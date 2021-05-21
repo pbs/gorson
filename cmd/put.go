@@ -47,6 +47,9 @@ func init() {
 	cmd.Flags().StringVarP(&filename, "file", "f", "", "json file to read key/value pairs from")
 	cmd.Flags().StringVarP(&timeout, "timeout", "t", "1", "timeout in minutes for put")
 	cmd.Flags().BoolVarP(&delete, "delete", "d", false, "deletes parameters that are not present in the json file")
-	cmd.MarkFlagRequired("file")
+	err := cmd.MarkFlagRequired("file")
+	if err != nil {
+		log.Fatal(err)
+	}
 	rootCmd.AddCommand(cmd)
 }
