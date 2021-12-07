@@ -21,7 +21,7 @@ docker build -t gorson_builder -f Dockerfile.build.alpine .
 # for each of our target platforms we use the gorson_builder
 #   docker container to compile a binary of our application
 for architecture in amd64 arm64; do
-    for platform in darwin linux; do \
+    for platform in darwin linux; do
         binary_name="gorson-${VERSION}-${platform}-${architecture}"
         >&2 echo "compiling $binary_name"
 
