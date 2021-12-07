@@ -20,22 +20,23 @@ docker build -t gorson_builder -f Dockerfile.build.alpine .
 >&2 echo "compiling binaries for release"
 # for each of our target platforms we use the gorson_builder
 #   docker container to compile a binary of our application
-for platform in darwin linux; do \
-    binary_name="gorson-${VERSION}-${platform}-amd64"
-    >&2 echo "compiling $binary_name"
+for architecture in amd64 arm64; do
+    for platform in darwin linux; do \
+        binary_name="gorson-${VERSION}-${platform}-${architecture}"
+        >&2 echo "compiling $binary_name"
 
-    # * GOOS is the target operating system
-    # * GOARCH is the target processor architecture
-    #     (we only compile for amd64 systems)
-    #     see https://golang.org/cmd/go/#hdr-Environment_variables
-    # * CGO_ENABLED controls whether the go compiler allows us to
-    #     import C packages (we don't do this, so we set it to 0 to turn CGO off)
-    #     see https://golang.org/cmd/cgo/
-    docker run --rm \
-    -v "${PWD}":/app \
-    -e "GOOS=$platform" \
-    -e "GOARCH=amd64" \
-    -e "CGO_ENABLED=0" \
-    gorson_builder \
-        go build -o "bin/$binary_name"
+        # * GOOS is the target operating system
+        # * GOARCH is the target processor architecture
+        #     see https://golang.org/cmd/go/#hdr-Environment_variables
+        # * CGO_ENABLED controls whether the go compiler allows us to
+        #     import C packages (we don't do this, so we set it to 0 to turn CGO off)
+        #     see https://golang.org/cmd/cgo/
+        docker run --rm \
+        -v "${PWD}":/app \
+        -e "GOOS=${platform}" \
+        -e "GOARCH=${architecture}" \
+        -e "CGO_ENABLED=0" \
+        gorson_builder \
+            go build -o "bin/$binary_name"
+    done
 done
