@@ -10,14 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
       - name: Build Binaries
         run: ./scripts/build-release.sh
         # as of 2020-09-22, it's tricky to use the official GH release actions if you don't know the asset
         # names ahead of time, but we can do it ourselves...with javascript
         # https://github.com/actions/upload-release-asset/issues/47#issuecomment-659071145
       - name: Create Release
-        uses: actions/github-script@v2
+        uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
