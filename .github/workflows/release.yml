@@ -25,7 +25,7 @@ jobs:
             const fs = require('fs').promises;
             const { repo: { owner, repo }, sha } = context;
             console.log({ owner, repo, sha });
-            const release = await github.repos.createRelease({
+            const release = await github.rest.repos.createRelease({
               owner, repo,
               tag_name: process.env.GITHUB_REF.split('/')[2],
               name: process.env.GITHUB_REF.split('/')[2],
@@ -35,7 +35,7 @@ jobs:
             console.log('created release', { release });
             for (let file of await fs.readdir('./bin/')) {
               console.log('uploading', file);
-              await github.repos.uploadReleaseAsset({
+              await github.rest.repos.uploadReleaseAsset({
                 owner, repo,
                 release_id: release.data.id,
                 name: file,
