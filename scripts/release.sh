@@ -24,7 +24,7 @@ NEW=$(( CURRENT + 1))
 # Internal gorson version
 find_and_replace "s/$CURRENT/$NEW/g" ./internal/gorson/version/version.go
 # Binary version
-find_and_replace "s/gorson-$CURRENT-([^-]+)-amd64/gorson-$NEW-\1-amd64/g" README.md
+find_and_replace "s/gorson-$CURRENT-([^-]+)-/gorson-$NEW-\1-/g" README.md
 # asdf version
 find_and_replace "s/gorson $CURRENT/gorson $NEW/g" README.md
 # GitHub release version
