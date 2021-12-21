@@ -91,9 +91,9 @@ If you would prefer the output of commands to be colorless, append `--no-color`.
 
 # Installation
 
-Currently gorson ships binaries for OS X and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/pbs/gorson/releases)
+Currently gorson ships binaries for MacOS and Linux 64bit systems. You can download the latest release from [GitHub](https://github.com/pbs/gorson/releases)
 
-## OS X
+## MacOS
 
 ```bash
 wget https://github.com/pbs/gorson/releases/download/10/gorson-10-darwin-amd64
@@ -106,6 +106,12 @@ Download the binary
 ```bash
 wget https://github.com/pbs/gorson/releases/download/10/gorson-10-linux-amd64
 ```
+
+## ARM
+
+For either MacOS or Linux, replace the `amd64` with `arm64` above.
+
+## Install the binary
 
 Move the binary to an installation path, make it executable, and add to path
 
