@@ -5,12 +5,10 @@ IFS=$'\n\t'
 # tooling logic borrowed heavily from the talented minds of confd
 # https://github.com/kelseyhightower/confd/blob/master/Makefile
 
-cd "$( dirname "${BASH_SOURCE[0]}" )/.."
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 ./scripts/clean.sh
 mkdir -p bin
-
-VERSION=$(grep -E -o '[0-9]+\.[0-9a-z.\-]+' ./internal/gorson/version/version.go)
 
 # We want to make sure the final builds are formatted and linted properly.
 ./scripts/format.sh
@@ -18,11 +16,11 @@ VERSION=$(grep -E -o '[0-9]+\.[0-9a-z.\-]+' ./internal/gorson/version/version.go
 
 # for each of our target platforms we use the gorson_builder
 #   docker container to compile a binary of our application
->&2 echo "compiling binaries for release"
+echo >&2 "compiling binaries for release"
 for architecture in amd64 arm64; do
     for platform in darwin linux; do
-        binary_name="gorson-${VERSION}-${platform}-${architecture}"
-        >&2 echo "compiling $binary_name"
+        binary_name="gorson-${platform}-${architecture}"
+        echo >&2 "compiling $binary_name"
 
         # * GOOS is the target operating system
         # * GOARCH is the target processor architecture

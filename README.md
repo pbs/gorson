@@ -96,7 +96,7 @@ Currently gorson ships binaries for MacOS and Linux 64bit systems. You can downl
 ## MacOS
 
 ```bash
-wget https://github.com/pbs/gorson/releases/download/10/gorson-10-darwin-amd64
+wget https://github.com/pbs/gorson/releases/latest/download/gorson-darwin-amd64
 ```
 
 ## Linux
@@ -104,7 +104,7 @@ wget https://github.com/pbs/gorson/releases/download/10/gorson-10-darwin-amd64
 Download the binary
 
 ```bash
-wget https://github.com/pbs/gorson/releases/download/10/gorson-10-linux-amd64
+wget https://github.com/pbs/gorson/releases/latest/download/gorson-linux-amd64
 ```
 
 ## ARM
@@ -117,7 +117,7 @@ Move the binary to an installation path, make it executable, and add to path
 
 ```bash
 mkdir -p /opt/gorson/bin
-mv gorson-10-linux-amd64 /opt/gorson/bin/gorson
+mv gorson-linux-amd64 /opt/gorson/bin/gorson
 chmod +x /opt/gorson/bin/gorson
 export PATH="$PATH:/opt/gorson/bin"
 ```
@@ -141,13 +141,13 @@ asdf list-all gorson
 Install a particular version
 
 ```bash
-asdf install gorson 10
+asdf install gorson 11
 ```
 
 Make a particular version your default
 
 ```bash
-asdf global gorson 10
+asdf global gorson 11
 ```
 
 # Notes
