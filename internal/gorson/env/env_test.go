@@ -9,14 +9,16 @@ type testpair struct {
 
 var testpairs = []testpair{
 	{
-		input: map[string]string{"WITH_AMPERSAND": "with&ampersand"},
-		expected: `WITH_AMPERSAND='with&ampersand'
-`,
+		input:    map[string]string{"WITH_AMPERSAND": "with&ampersand"},
+		expected: `WITH_AMPERSAND='with&ampersand'`,
 	},
 	{
-		input: map[string]string{"WITH_SPACES": "with spaces"},
-		expected: `WITH_SPACES='with spaces'
-`,
+		input:    map[string]string{"WITH_SPACES": "with spaces"},
+		expected: `WITH_SPACES='with spaces'`,
+	},
+	{
+		input:    map[string]string{"WITH_COLON": "with colon:"},
+		expected: `WITH_COLON='with colon:'`,
 	},
 }
 
