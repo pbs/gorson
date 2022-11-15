@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/pbs/gorson/internal/gorson/bash"
 	"log"
 
-	"github.com/pbs/gorson/internal/gorson/env"
 	"github.com/pbs/gorson/internal/gorson/io"
 	"github.com/pbs/gorson/internal/gorson/json"
 	"github.com/pbs/gorson/internal/gorson/util"
@@ -25,8 +25,8 @@ func get(path string) {
 		fmt.Println(string(serialized))
 
 	} else if format == "env" {
-		marshalled := env.Marshal(pms)
-		fmt.Println(marshalled)
+		envs := bash.ParamsToShell(pms)
+		fmt.Println(envs)
 	} else if format == "json" {
 		marshalled := json.Marshal(pms)
 		fmt.Println(marshalled)
