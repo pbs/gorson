@@ -76,7 +76,7 @@ func ReadFromParameterStore(path util.ParameterStorePath, client ssmiface.SSMAPI
 	return values
 }
 
-// WriteResult is the result writing a single parameter - successful is Error is nil
+// WriteResult is the result writing a single parameter - successful if Error is nil
 type WriteResult struct {
 	Name  string
 	Error error

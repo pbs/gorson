@@ -640,7 +640,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 		}
 
 		for _, param := range deletedParams {
-			_, present := findStringInSice(c.Expected, param)
+			_, present := findStringInSlice(c.Expected, param)
 			if !present {
 				t.Fatalf("%d expected %s in %s\n", i, c.Expected, param)
 			}
@@ -648,7 +648,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 	}
 }
 
-func findStringInSice(slice []string, val string) (int, bool) {
+func findStringInSlice(slice []string, val string) (int, bool) {
 	for i, item := range slice {
 		if item == val {
 			return i, true
