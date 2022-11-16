@@ -26,6 +26,10 @@ export delta='the_delta_value'`,
 		input:    map[string]string{"alpha": "with&ampersand"},
 		expected: "export alpha='with&ampersand'",
 	},
+	{
+		input:    map[string]string{"colon": "with colon:"},
+		expected: `export colon='with colon:'`,
+	},
 }
 
 func TestParamsToShell(t *testing.T) {
