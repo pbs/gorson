@@ -7,14 +7,26 @@ type testpair struct {
 	expected string
 }
 
+/* whitespace is important in this array definition */
 var testpairs = []testpair{
 	{
 		input: map[string]string{"WITH_AMPERSAND": "with&ampersand"},
 		expected: `{
     "WITH_AMPERSAND": "with&ampersand"
 }
-`,
-	},
+`},
+	{
+		input: map[string]string{"WITH SPACE": "with space"},
+		expected: `{
+    "WITH SPACE": "with space"
+}
+`},
+	{
+		input: map[string]string{"WITH_COLON": "with_colon:"},
+		expected: `{
+    "WITH_COLON": "with_colon:"
+}
+`},
 }
 
 func TestParamsToJson(t *testing.T) {
