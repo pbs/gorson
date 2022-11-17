@@ -1,6 +1,11 @@
 package util
 
-import "strings"
+import (
+	"fmt"
+	"golang.org/x/exp/maps"
+	"sort"
+	"strings"
+)
 
 type ParameterStorePath struct {
 	components []string
@@ -22,12 +27,6 @@ func NewParameterStorePath(input string) *ParameterStorePath {
 	return &ParameterStorePath{filtered}
 }
 
-func GetKeys(parameters map[string]string) []string {
-	i := 0
-	keys := make([]string, len(parameters))
-	for k := range parameters {
-		keys[i] = k
-		i++
 func ParmsToArray(parameters map[string]string) []string {
 	lines := make([]string, 0)
 	keys := maps.Keys(parameters)
