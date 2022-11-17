@@ -21,3 +21,13 @@ func NewParameterStorePath(input string) *ParameterStorePath {
 	}
 	return &ParameterStorePath{filtered}
 }
+
+func GetKeys(parameters map[string]string) []string {
+	i := 0
+	keys := make([]string, len(parameters))
+	for k := range parameters {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
