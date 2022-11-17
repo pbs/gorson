@@ -4,22 +4,14 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-)
 
-func getKeys(parameters map[string]string) []string {
-	i := 0
-	keys := make([]string, len(parameters))
-	for k := range parameters {
-		keys[i] = k
-		i++
-	}
-	return keys
-}
+	"github.com/pbs/gorson/internal/gorson/util"
+)
 
 // ParamsToShell generates a shell script to export environment variables
 func ParamsToShell(parameters map[string]string) string {
 	lines := make([]string, 0)
-	keys := getKeys(parameters)
+	keys := util.GetKeys(parameters)
 	sort.Strings(keys)
 	for _, key := range keys {
 		v := parameters[key]
