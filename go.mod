@@ -6,6 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.139
 	github.com/fatih/color v1.13.0
 	github.com/spf13/cobra v1.6.1
+	golang.org/x/exp v0.0.0-20221114191408-850992195362
 	gopkg.in/yaml.v2 v2.4.0
 )
 
