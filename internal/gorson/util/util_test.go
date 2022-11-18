@@ -2,6 +2,16 @@ package util
 
 import "testing"
 
+var testcases = []struct {
+	input    map[string]string
+	expected []string
+}{
+	{
+		map[string]string{"lucy": "football", "linus": "blanket", "schroeder": "piano"},
+		[]string{"lucy='football'", "linus='blanket'", "schroeder='piano'"},
+	},
+}
+
 type testpair struct {
 	input    string
 	expected string
@@ -33,5 +43,12 @@ func TestParameterStorePath(t *testing.T) {
 				"got", output,
 			)
 		}
+	}
+}
+
+func TestParmsToArray(t *testing.T) {
+	for _, m := range testcases {
+		arr := ParmsToArray(m)
+
 	}
 }
