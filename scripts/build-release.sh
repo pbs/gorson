@@ -35,6 +35,6 @@ for architecture in amd64 arm64; do
             -e "GOARCH=${architecture}" \
             -e "CGO_ENABLED=0" \
             gorson_builder \
-            go build -o "bin/$binary_name"
+            go build -buildvcs=false -o "bin/$binary_name"
     done
 done
