@@ -1,6 +1,9 @@
 package util
 
-import "testing"
+import (
+	"golang.org/x/exp/slices"
+	"testing"
+)
 
 var testcases = []struct {
 	input    map[string]string
@@ -9,6 +12,14 @@ var testcases = []struct {
 	{
 		map[string]string{"lucy": "football", "linus": "blanket", "schroeder": "piano"},
 		[]string{"lucy='football'", "linus='blanket'", "schroeder='piano'"},
+	},
+	{
+		map[string]string{"0ucy": "football", "linus": "blanket", "schroeder": "piano"},
+		nil,
+	},
+	{
+		map[string]string{"lucy": "footb'l'", "linus": "b:anket", "schroeder": "p i	ano"},
+		[]string{"lucy='footb\"l\"'", "linus='b:anket'", "schroeder='p i	ano'"},
 	},
 }
 
@@ -46,9 +57,25 @@ func TestParameterStorePath(t *testing.T) {
 	}
 }
 
-func TestParmsToArray(t *testing.T) {
-	for _, m := range testcases {
-		arr := ParmsToArray(m)
-
+func TestParametersToSlice(t *testing.T) {
+	for i, tc := range testcases {
+		arr, err := ParametersToSlice(tc.input)
+		if err != nil {
+			if tc.expected != nil {
+				t.Errorf("Function returned an error, but this was not expected")
+			}
+		}
+		slices.Sort(arr)
+		slices.Sort(tc.expected)
+		if slices.CompareFunc(tc.expected, arr, func(str1 string, str2 string) int {
+			retval := 0
+			if str1 != str2 {
+				t.Errorf("This is arr: %s; %s does not equal %s", arr, str1, str2)
+				retval = -1
+			}
+			return retval
+		}) != 0 {
+			t.Errorf("Test case %d failed", i)
+		}
 	}
 }
