@@ -1,4 +1,4 @@
 package version
 
 // Version is current gorson version
-const Version = "12"
+const Version = "13"
