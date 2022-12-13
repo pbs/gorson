@@ -30,12 +30,16 @@ export delta='the_delta_value'`,
 		input:    map[string]string{"colon": "with colon:"},
 		expected: `export colon='with colon:'`,
 	},
+	{
+		input:    map[string]string{"3badkey": "foo"},
+		expected: "",
+	},
 }
 
 func TestParamsToShell(t *testing.T) {
 	for _, pair := range testpairs {
 		output := ParamsToShell(pair.input)
-		if output != pair.expected {
+		if pair.expected != "" && output != pair.expected {
 			t.Error(
 				"For", pair.input,
 				"expected", pair.expected,
