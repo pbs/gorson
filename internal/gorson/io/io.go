@@ -318,3 +318,25 @@ func ReadJSONFile(filepath string) map[string]string {
 	}
 	return output
 }
+
+// ReadEnvFile reads a .env file of =-delimited key-value pairs and returns a map of string keys and values
+func ReadEnvFile(filepath string) map[string]string {
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var output map[string]string
+	if err := env.Unmarshal(content, &output); err != nil {
+		switch err := err.(type) {
+		case *json.SyntaxError:
+			log.Fatal("error reading " + filepath + ": check that it's valid json")
+		case *json.UnmarshalTypeError:
+			log.Fatal("error reading " + filepath + ": it should contain only string key/value pairs")
+
+		default:
+			fmt.Println(reflect.TypeOf(err))
+			log.Fatal(err)
+		}
+	}
+	return output
+}

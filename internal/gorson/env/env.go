@@ -15,3 +15,5 @@ func Marshal(parameters map[string]string) string {
 	}
 	return strings.Join(lines, "\n")
 }
+
+func Deserialize()
