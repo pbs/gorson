@@ -19,11 +19,11 @@ var testcases = []struct {
 	},
 	{
 		map[string]string{"lucy": "footb'l'", "linus": "b:anket", "schroeder": "p i	ano"},
-		[]string{`lucy='footb\'l\''`, "linus='b:anket'", "schroeder='p i	ano'"},
+		[]string{`lucy='footb'\''l'\'''`, "linus='b:anket'", "schroeder='p i	ano'"},
 	},
 	{
 		map[string]string{"complex": "a$b'c-d_e;f&g\"h|i@j"},
-		[]string{`complex='a$b\'c-d_e;f&g"h|i@j'`},
+		[]string{`complex='a$b'\''c-d_e;f&g"h|i@j'`},
 	},
 }
 

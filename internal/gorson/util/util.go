@@ -45,7 +45,7 @@ func ParametersToSlice(parameters map[string]string) ([]string, error) {
 		}
 		v := parameters[key]
 		if strings.Contains(v, "'") {
-			v = strings.ReplaceAll(v, "'", "\\'")
+			v = strings.ReplaceAll(v, "'", "'\\''")
 		}
 		line := fmt.Sprintf("%s='%s'", key, v)
 		lines = append(lines, line)
