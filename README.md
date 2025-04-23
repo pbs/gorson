@@ -141,13 +141,13 @@ asdf list-all gorson
 Install a particular version
 
 ```bash
-asdf install gorson 13
+asdf install gorson 14
 ```
 
 Make a particular version your default
 
 ```bash
-asdf global gorson 13
+asdf global gorson 14
 ```
 
 # Notes
