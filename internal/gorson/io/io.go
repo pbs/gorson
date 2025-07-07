@@ -189,7 +189,7 @@ func promptUserDeltaWarning(parameters []string, path util.ParameterStorePath) (
 	fmt.Println("The following are not present in the file, but are in parameter store:")
 	for _, parameter := range parameters {
 		fullParameterPath := fmt.Sprintf("%s%s\n", path.String(), parameter)
-		fmt.Printf(red(fullParameterPath))
+		fmt.Print(red(fullParameterPath))
 	}
 	fmt.Printf("Are you sure you'd like to %s these parameters?\nType %s to proceed:\n", red("delete"), green("yes"))
 	reader := bufio.NewReader(os.Stdin)
