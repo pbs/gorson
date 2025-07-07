@@ -1,6 +1,6 @@
 module github.com/pbs/gorson
 
-go 1.19
+go 1.24.4
 
 require (
 	github.com/aws/aws-sdk-go v1.44.139
