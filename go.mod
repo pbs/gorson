@@ -3,7 +3,7 @@ module github.com/pbs/gorson
 go 1.24.4
 
 require (
-	github.com/aws/aws-sdk-go v1.55.7
+	github.com/aws/aws-sdk-go v1.55.8
 	github.com/fatih/color v1.18.0
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b
