@@ -1,0 +1,8 @@
+# Get gorson binaries via docker image
+FROM public.ecr.aws/r9h7e5x0/gorson:dev AS gorson
+
+# Test image
+FROM alpine:3.20
+COPY --from=gorson /gorson/bin/gorson-linux-amd64 /bin/gorson
+RUN chmod +x /bin/gorson
+CMD ["gorson"]
