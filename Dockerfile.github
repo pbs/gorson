@@ -1,0 +1,17 @@
+# Builder stage
+FROM golang:1.24.4-alpine AS builder
+
+WORKDIR /app
+RUN apk add --no-cache bash gcc git musl-dev
+COPY main.go go.mod go.sum ./
+COPY scripts ./scripts
+COPY cmd ./cmd
+COPY internal ./internal
+RUN go mod download
+RUN chmod +x ./scripts/* && \
+    sh -c ./scripts/docker-release.sh
+
+# Gorson binaries only
+FROM alpine:3.20
+WORKDIR /gorson/bin
+COPY --from=builder /app/bin /gorson/bin/
