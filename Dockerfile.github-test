@@ -1,5 +1,5 @@
-# Gorson binaries
-FROM gorson:latest AS gorson
+# Get gorson binaries via docker image
+FROM public.ecr.aws/r9h7e5x0/gorson:dev AS gorson
 
 # Test image
 FROM alpine:3.20
