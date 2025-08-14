@@ -149,6 +149,30 @@ Make a particular version your default
 ```bash
 asdf global gorson 14
 ```
+# Add gorson binary in docker image
+## Update any Dockerfile (see example below)
+```
+FROM python:3.12-alpine
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+```
+## To a multi-stage build
+```
+FROM public.ecr.aws/r9h7e5x0/gorson:dev AS gorson
+
+FROM python:3.12-alpine
+COPY --from=gorson /gorson/bin/gorson-linux-amd64 /bin/gorson
+RUN chmod +x /bin/gorson
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8000
+```
 
 # Notes
 
