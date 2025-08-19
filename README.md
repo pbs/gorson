@@ -141,13 +141,13 @@ asdf list-all gorson
 Install a particular version
 
 ```bash
-asdf install gorson 14
+asdf install gorson 15
 ```
 
 Make a particular version your default
 
 ```bash
-asdf global gorson 14
+asdf global gorson 15
 ```
 # Add gorson binary in docker image
 ## Update any Dockerfile (see example below)
