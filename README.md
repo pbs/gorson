@@ -187,6 +187,6 @@ These environment variables will affect the AWS session behavior:
 AWS_PROFILE=example-profile AWS_REGION=us-east-1 gorson get /a/parameter/store/path/
 ```
 
-# Development
+# Development & Release
 
 See [docs/development.md](docs/development.md)
