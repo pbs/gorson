@@ -1,54 +1,51 @@
 package io
 
 import (
+	"context"
 	"errors"
 	"reflect"
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 	"github.com/pbs/gorson/internal/gorson/util"
 )
 
 type mockedPutParameterReturnPair struct {
 	Resp ssm.PutParameterOutput
-	Err  awserr.Error
+	Err  error
 }
 
 type mockedGetParametersByPathReturnPair struct {
 	Resp ssm.GetParametersByPathOutput
-	Err  awserr.Error
+	Err  error
 }
 
 type mockedDeleteParametersReturnPair struct {
 	Resp ssm.DeleteParametersOutput
-	Err  awserr.Error
+	Err  error
 }
 
 type mockedPutParameter struct {
-	ssmiface.SSMAPI
 	retVals   []mockedPutParameterReturnPair
 	callCount *int
 }
 
 type mockedGetParameter struct {
-	ssmiface.SSMAPI
 	retVal mockedGetParametersByPathReturnPair
 }
 
 type mockedDeleteDelta struct {
-	ssmiface.SSMAPI
 	deleteSuccessful          bool
 	getParametersByPathRetVal mockedGetParametersByPathReturnPair
 	deleteParametersRetVal    mockedDeleteParametersReturnPair
 }
 
-func (m mockedPutParameter) PutParameter(in *ssm.PutParameterInput) (*ssm.PutParameterOutput, error) {
+func (m mockedPutParameter) PutParameter(ctx context.Context, in *ssm.PutParameterInput, opts ...func(*ssm.Options)) (*ssm.PutParameterOutput, error) {
 	// we have to increment a pointer to an integer because we can't update struct internal state here:
-	// ssmiface.SSMAPI requires PutParameter to be a receiver on a struct value, so this method gets a copy
+	// the interface requires PutParameter to be a receiver on a struct value, so this method gets a copy
 	// of the struct, not a pointer to a mockedPutParameter that we can mutate.
 	time.Sleep(time.Duration(1) * time.Microsecond) // We have to wait some amount to reliably validate timeouts
 	callCount := *m.callCount
@@ -57,17 +54,37 @@ func (m mockedPutParameter) PutParameter(in *ssm.PutParameterInput) (*ssm.PutPar
 	return &resp.Resp, resp.Err
 }
 
-func (m mockedGetParameter) GetParametersByPath(input *ssm.GetParametersByPathInput) (*ssm.GetParametersByPathOutput, error) {
+func (m mockedPutParameter) GetParametersByPath(ctx context.Context, input *ssm.GetParametersByPathInput, opts ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (m mockedPutParameter) DeleteParameters(ctx context.Context, input *ssm.DeleteParametersInput, opts ...func(*ssm.Options)) (*ssm.DeleteParametersOutput, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (m mockedGetParameter) GetParametersByPath(ctx context.Context, input *ssm.GetParametersByPathInput, opts ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error) {
 	return &m.retVal.Resp, m.retVal.Err
 }
 
-func (m mockedDeleteDelta) GetParametersByPath(input *ssm.GetParametersByPathInput) (*ssm.GetParametersByPathOutput, error) {
+func (m mockedGetParameter) PutParameter(ctx context.Context, input *ssm.PutParameterInput, opts ...func(*ssm.Options)) (*ssm.PutParameterOutput, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (m mockedGetParameter) DeleteParameters(ctx context.Context, input *ssm.DeleteParametersInput, opts ...func(*ssm.Options)) (*ssm.DeleteParametersOutput, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (m mockedDeleteDelta) GetParametersByPath(ctx context.Context, input *ssm.GetParametersByPathInput, opts ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error) {
 	return &m.getParametersByPathRetVal.Resp, m.getParametersByPathRetVal.Err
 }
 
-func (m mockedDeleteDelta) DeleteParameters(input *ssm.DeleteParametersInput) (*ssm.DeleteParametersOutput, error) {
-	deletedParams := make([]*string, 0)
-	invalidParams := make([]*string, 0)
+func (m mockedDeleteDelta) PutParameter(ctx context.Context, input *ssm.PutParameterInput, opts ...func(*ssm.Options)) (*ssm.PutParameterOutput, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (m mockedDeleteDelta) DeleteParameters(ctx context.Context, input *ssm.DeleteParametersInput, opts ...func(*ssm.Options)) (*ssm.DeleteParametersOutput, error) {
+	deletedParams := make([]string, 0)
+	invalidParams := make([]string, 0)
 
 	if m.deleteSuccessful {
 		deletedParams = append(deletedParams, input.Names...)
@@ -110,7 +127,7 @@ func TestReadFromParameterStore(t *testing.T) {
 		{
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("name"),
 							Value: aws.String("value"),
@@ -128,7 +145,7 @@ func TestReadFromParameterStore(t *testing.T) {
 	path := util.NewParameterStorePath("/path/parameter")
 
 	for i, c := range cases {
-		parameters := ReadFromParameterStore(*path, mockedGetParameter{retVal: c.GetParamsRetVal})
+		parameters := ReadFromParameterStore(*path, &mockedGetParameter{retVal: c.GetParamsRetVal})
 		if !reflect.DeepEqual(c.Expected, parameters) {
 			t.Fatalf("%v expected %v, got %v", i, c.Expected, parameters)
 		}
@@ -142,8 +159,8 @@ func TestWriteSingleParameter(t *testing.T) {
 			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
-						Tier:    aws.String("mock"),
-						Version: aws.Int64(1),
+						Tier:    types.ParameterTierStandard,
+						Version: 1,
 					},
 					Err: nil,
 				},
@@ -155,28 +172,28 @@ func TestWriteSingleParameter(t *testing.T) {
 			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
-						Tier:    aws.String("mock"),
-						Version: aws.Int64(1),
+						Tier:    types.ParameterTierStandard,
+						Version: 1,
 					},
-					Err: awserr.New("Catastrophe", "something terrible has happened", errors.New("from the depths I climb")),
+					Err: errors.New("Catastrophe: something terrible has happened"),
 				},
 			},
-			Expected: awserr.New("Catastrophe", "something terrible has happened", errors.New("from the depths I climb")),
+			Expected: errors.New("Catastrophe: something terrible has happened"),
 		},
 		// if AWS gives us a throttling exception, then a success, should be fine after our auto-retry
 		{
 			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
-						Tier:    aws.String("mock"),
-						Version: aws.Int64(1),
+						Tier:    types.ParameterTierStandard,
+						Version: 1,
 					},
-					Err: awserr.New("ThrottlingException", "slow it down", errors.New("you got throttled")),
+					Err: &types.ThrottlingException{Message: aws.String("slow it down")},
 				},
 				{
 					Resp: ssm.PutParameterOutput{
-						Tier:    aws.String("mock"),
-						Version: aws.Int64(1),
+						Tier:    types.ParameterTierStandard,
+						Version: 1,
 					},
 					Err: nil,
 				},
@@ -188,18 +205,18 @@ func TestWriteSingleParameter(t *testing.T) {
 	for i, c := range cases {
 		outputChannel := make(chan WriteResult, 1)
 		callCount := 0
-		writeSingleParameter(outputChannel, mockedPutParameter{retVals: c.PutParameterReturnRetVals, callCount: &callCount}, "key", "value", 0)
+		writeSingleParameter(outputChannel, &mockedPutParameter{retVals: c.PutParameterReturnRetVals, callCount: &callCount}, "key", "value", 0)
 		result := <-outputChannel
 		if c.Expected != nil {
 			if result.Error == nil {
-				t.Fatalf("%d expected %d, got %d", i, c.Expected, result.Error)
+				t.Fatalf("%d expected %v, got %v", i, c.Expected, result.Error)
 			}
 			if result.Error.Error() != c.Expected.Error() {
-				t.Fatalf("%d expected %d, got %d", i, c.Expected, result.Error)
+				t.Fatalf("%d expected %v, got %v", i, c.Expected, result.Error)
 			}
 		} else {
 			if result.Error != nil {
-				t.Fatalf("%d expected %d, got %d", i, c.Expected, result.Error)
+				t.Fatalf("%d expected %v, got %v", i, c.Expected, result.Error)
 			}
 		}
 	}
@@ -212,8 +229,8 @@ func TestWriteToParameterStore(t *testing.T) {
 			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
-						Tier:    aws.String("mock"),
-						Version: aws.Int64(1),
+						Tier:    types.ParameterTierStandard,
+						Version: 1,
 					},
 					Err: nil,
 				},
@@ -226,8 +243,8 @@ func TestWriteToParameterStore(t *testing.T) {
 			PutParameterReturnRetVals: []mockedPutParameterReturnPair{
 				{
 					Resp: ssm.PutParameterOutput{
-						Tier:    aws.String("mock"),
-						Version: aws.Int64(1),
+						Tier:    types.ParameterTierStandard,
+						Version: 1,
 					},
 					Err: nil,
 				},
@@ -240,17 +257,17 @@ func TestWriteToParameterStore(t *testing.T) {
 	path := util.NewParameterStorePath("/path/")
 	for i, c := range cases {
 		callCount := 0
-		err := WriteToParameterStore(map[string]string{"path": "value"}, *path, c.Timeout, mockedPutParameter{retVals: c.PutParameterReturnRetVals, callCount: &callCount})
+		err := WriteToParameterStore(map[string]string{"path": "value"}, *path, c.Timeout, &mockedPutParameter{retVals: c.PutParameterReturnRetVals, callCount: &callCount})
 		if c.Expected != nil {
 			if err == nil {
-				t.Fatalf("%d expected %d, got %d", i, c.Expected, err)
+				t.Fatalf("%d expected %v, got %v", i, c.Expected, err)
 			}
 			if err.Error() != c.Expected.Error() {
-				t.Fatalf("%d expected %d, got %d", i, c.Expected, err)
+				t.Fatalf("%d expected %v, got %v", i, c.Expected, err)
 			}
 		} else {
 			if err != nil {
-				t.Fatalf("%d expected %d, got %d", i, c.Expected, err)
+				t.Fatalf("%d expected %v, got %v", i, c.Expected, err)
 			}
 		}
 	}
@@ -266,7 +283,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -291,7 +308,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -314,7 +331,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -339,7 +356,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -362,7 +379,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			FileParams: map[string]string{},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -386,7 +403,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			FileParams: map[string]string{},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -500,7 +517,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			FileParams: map[string]string{},
 			GetParamsRetVal: mockedGetParametersByPathReturnPair{
 				Resp: ssm.GetParametersByPathOutput{
-					Parameters: []*ssm.Parameter{
+					Parameters: []types.Parameter{
 						{
 							Name:  aws.String("paramOne"),
 							Value: aws.String("valueOne"),
@@ -632,7 +649,7 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			c.FileParams,
 			*path,
 			true,
-			m,
+			&m,
 		)
 
 		if err != nil {
@@ -646,13 +663,4 @@ func TestDeleteDeltaFromParameterStore(t *testing.T) {
 			}
 		}
 	}
-}
-
-func findStringInSlice(slice []string, val string) (int, bool) {
-	for i, item := range slice {
-		if item == val {
-			return i, true
-		}
-	}
-	return -1, false
 }

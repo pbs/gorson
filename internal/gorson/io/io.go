@@ -2,6 +2,7 @@ package io
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,23 +18,30 @@ import (
 	"github.com/fatih/color"
 	"github.com/pbs/gorson/internal/gorson/util"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ssm"
-	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ssm"
+	"github.com/aws/aws-sdk-go-v2/service/ssm/types"
 )
 
-func getSSMClient() *ssm.SSM {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+// SSMClient interface for mocking in tests
+type SSMClient interface {
+	GetParametersByPath(ctx context.Context, params *ssm.GetParametersByPathInput, optFns ...func(*ssm.Options)) (*ssm.GetParametersByPathOutput, error)
+	PutParameter(ctx context.Context, params *ssm.PutParameterInput, optFns ...func(*ssm.Options)) (*ssm.PutParameterOutput, error)
+	DeleteParameters(ctx context.Context, params *ssm.DeleteParametersInput, optFns ...func(*ssm.Options)) (*ssm.DeleteParametersOutput, error)
+}
 
-	client := ssm.New(sess)
+func getSSMClient() *ssm.Client {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := ssm.NewFromConfig(cfg)
 	return client
 }
 
 // ReadFromParameterStore gets all parameters from a given parameter store path
-func ReadFromParameterStore(path util.ParameterStorePath, client ssmiface.SSMAPI) map[string]string {
+func ReadFromParameterStore(path util.ParameterStorePath, client SSMClient) map[string]string {
 	if client == nil {
 		client = getSSMClient()
 	}
@@ -53,7 +61,7 @@ func ReadFromParameterStore(path util.ParameterStorePath, client ssmiface.SSMAPI
 		if nextToken != nil {
 			input.NextToken = nextToken
 		}
-		output, err := client.GetParametersByPath(&input)
+		output, err := client.GetParametersByPath(context.TODO(), &input)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -82,27 +90,21 @@ type WriteResult struct {
 	Error error
 }
 
-func writeSingleParameter(c chan WriteResult, client ssmiface.SSMAPI, name string, value string, retryCount int) {
+func writeSingleParameter(c chan WriteResult, client SSMClient, name string, value string, retryCount int) {
 	overwrite := true
-	valueType := "SecureString"
+	valueType := types.ParameterTypeSecureString
 	keyID := "alias/aws/ssm"
 	input := ssm.PutParameterInput{
 		KeyId:     &keyID,
 		Name:      &name,
 		Overwrite: &overwrite,
-		Type:      &valueType,
+		Type:      valueType,
 		Value:     &value,
 	}
-	_, err := client.PutParameter(&input)
+	_, err := client.PutParameter(context.TODO(), &input)
 	if err != nil {
-		if awsErr, ok := err.(awserr.Error); ok {
-			if awsErr.Code() != "ThrottlingException" {
-				c <- WriteResult{
-					Name:  name,
-					Error: awsErr,
-				}
-				return
-			}
+		var throttlingErr *types.ThrottlingException
+		if errors.As(err, &throttlingErr) {
 			if retryCount < 100 {
 				// Introduce exponential backoff with jitter
 				r := math.Pow(2, float64(retryCount)) * (1 + rand.Float64())
@@ -115,18 +117,24 @@ func writeSingleParameter(c chan WriteResult, client ssmiface.SSMAPI, name strin
 				}
 				return
 			}
+		} else {
+			c <- WriteResult{
+				Name:  name,
+				Error: err,
+			}
+			return
 		}
 	} else {
 		c <- WriteResult{
 			Name:  name,
-			Error: err,
+			Error: nil,
 		}
 		return
 	}
 }
 
 // WriteToParameterStore writes given parameters to a given parameter store path
-func WriteToParameterStore(parameters map[string]string, path util.ParameterStorePath, timeout time.Duration, client ssmiface.SSMAPI) error {
+func WriteToParameterStore(parameters map[string]string, path util.ParameterStorePath, timeout time.Duration, client SSMClient) error {
 	if client == nil {
 		client = getSSMClient()
 	}
@@ -202,27 +210,32 @@ func promptUserDeltaWarning(parameters []string, path util.ParameterStorePath) (
 }
 
 // find returns the index and presence of a value in a slice and returns -1, false if it's not there.
-func find(slice []*string, val *string) (int, bool) {
+func find(slice []string, val string) (int, bool) {
 	for i, item := range slice {
-		if *item == *val {
+		if item == val {
 			return i, true
 		}
 	}
 	return -1, false
 }
 
+// findStringInSlice is a helper function for finding strings in slices
+func findStringInSlice(slice []string, val string) (int, bool) {
+	return find(slice, val)
+}
+
 // deleteFromParameterStore deletes parameters at a given path from parameter store
-func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client ssmiface.SSMAPI) (deletedParams []string, err error) {
+func deleteFromParameterStore(parameters []string, path util.ParameterStorePath, client SSMClient) (deletedParams []string, err error) {
 	deletedParams = []string{}
 
-	fullPathParameters := make([]*string, len(parameters))
+	fullPathParameters := make([]string, len(parameters))
 	for idx, parameter := range parameters {
 		fullPathParameter := fmt.Sprintf("%s%s", path.String(), parameter)
-		fullPathParameters[idx] = &fullPathParameter
+		fullPathParameters[idx] = fullPathParameter
 	}
 
 	var chunkSize int
-	var chunkedParameters [][]*string
+	var chunkedParameters [][]string
 
 	for {
 		if len(fullPathParameters) == 0 {
@@ -244,7 +257,7 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 			Names: params,
 		}
 
-		output, err := client.DeleteParameters(&deleteParametersInput)
+		output, err := client.DeleteParameters(context.TODO(), &deleteParametersInput)
 
 		if err != nil {
 			fmt.Println(err)
@@ -253,7 +266,7 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 		if len(output.DeletedParameters) != len(params) {
 			fmt.Println("Some parameters failed to delete:")
 			for _, parameter := range params {
-				_, found := find(output.DeletedParameters, parameter)
+				_, found := findStringInSlice(output.DeletedParameters, parameter)
 				if !found {
 					fmt.Println(parameter)
 				}
@@ -263,12 +276,12 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 		if len(output.InvalidParameters) != 0 {
 			fmt.Println("Some parameters failed to delete due to being invalid:")
 			for _, invalidParameter := range output.InvalidParameters {
-				fmt.Println(*invalidParameter)
+				fmt.Println(invalidParameter)
 			}
 		}
 
 		for _, deletedParam := range output.DeletedParameters {
-			deletedParams = append(deletedParams, *deletedParam)
+			deletedParams = append(deletedParams, deletedParam)
 		}
 	}
 
@@ -276,7 +289,7 @@ func deleteFromParameterStore(parameters []string, path util.ParameterStorePath,
 }
 
 // DeleteDeltaFromParameterStore deletes the parameters that exist in parameter store, but not in the parameters variable
-func DeleteDeltaFromParameterStore(parameters map[string]string, path util.ParameterStorePath, autoApprove bool, client ssmiface.SSMAPI) ([]string, error) {
+func DeleteDeltaFromParameterStore(parameters map[string]string, path util.ParameterStorePath, autoApprove bool, client SSMClient) ([]string, error) {
 	if client == nil {
 		client = getSSMClient()
 	}
